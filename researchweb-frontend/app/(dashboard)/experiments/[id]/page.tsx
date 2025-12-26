@@ -10,6 +10,7 @@ import Button from '@/components/shared/Button';
 import { Comment } from '@/types';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import AIInsights from '@/components/experiments/AIInsights';
 
 export default function ExperimentDetailPage() {
   const params = useParams();
@@ -320,6 +321,7 @@ export default function ExperimentDetailPage() {
                 <p className="text-sm text-gray-500">No papers linked yet</p>
               )}
             </div>
+            <AIInsights experimentId={experimentId} />
 
             {/* Tags */}
             {currentExperiment.tags && currentExperiment.tags.length > 0 && (
