@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  password      String
+  name          String
+  role          Role        @default(STUDENT)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  teams         TeamMember[]
+  experiments   Experiment[]
+  comments      Comment[]
+  papers        Paper[]
+}
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+  COLLABORATOR
+}
+
+model Team {
+  id            String        @id @default(cuid())
+  name          String
+  description   String?
+  createdAt     DateTime      @default(now())
+  
+  members       TeamMember[]
+  experiments   Experiment[]
+  papers        Paper[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  userId    String
+  teamId    String
+  role      String   // "owner", "editor", "viewer"
+  joinedAt  DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, teamId])
+}
+
+model Experiment {
+  id              String    @id @default(cuid())
+  title           String
+  hypothesis      String?
+  method          String?
+  observations    String?
+  results         String?
+  failures        String?
+  nextSteps       String?
+  status          ExpStatus @default(IN_PROGRESS)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  authorId        String
+  teamId          String
+  
+  author          User      @relation(fields: [authorId], references: [id])
+  team            Team      @relation(fields: [teamId], references: [id])
+  comments        Comment[]
+  tags            Tag[]
+  experimentPapers ExperimentPaper[]
+  codeVersions    CodeVersion[]
+}
+
+enum ExpStatus {
+  IN_PROGRESS
+  BLOCKED
+  COMPLETE
+}
+
+model Paper {
+  id              String    @id @default(cuid())
+  title           String
+  authors         String?
+  url             String?
+  pdfUrl          String?
+  summary         String?
+  findings        String?
+  methodology     String?
+  limitations     String?
+  uploadedAt      DateTime  @default(now())
+  
+  uploadedById    String
+  teamId          String
+  
+  uploadedBy      User      @relation(fields: [uploadedById], references: [id])
+  team            Team      @relation(fields: [teamId], references: [id])
+  experimentPapers ExperimentPaper[]
+}
+
+model ExperimentPaper {
+  id            String     @id @default(cuid())
+  experimentId  String
+  paperId       String
+  
+  experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  paper         Paper      @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  
+  @@unique([experimentId, paperId])
+}
+
+model Comment {
+  id            String     @id @default(cuid())
+  content       String
+  mentions      String[]   // Array of user IDs mentioned
+  createdAt     DateTime   @default(now())
+  
+  authorId      String
+  experimentId  String
+  
+  author        User       @relation(fields: [authorId], references: [id])
+  experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id            String     @id @default(cuid())
+  name          String     @unique
+  experiments   Experiment[]
+}
+
+model CodeVersion {
+  id            String     @id @default(cuid())
+  commitHash    String
+  branch        String     @default("main")
+  repoUrl       String?
+  environment   String?    // JSON string of dependencies
+  createdAt     DateTime   @default(now())
+  
+  experimentId  String
+  experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+}
