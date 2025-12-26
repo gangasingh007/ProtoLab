@@ -31,8 +31,15 @@ export default function Navbar() {
                 >
                   Papers
                 </Link>
+                <Link
+                  href={`/teams/${currentTeam.id}/graph`}
+                  className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Graph
+                </Link>
               </>
             )}
+
           </div>
 
           <div className="flex items-center space-x-4">
