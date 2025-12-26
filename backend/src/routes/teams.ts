@@ -7,6 +7,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Get all teams for current user
+// Get all teams for current user
 router.get('/my-teams', authenticate, async (req: AuthRequest, res) => {
   try {
     const teamMembers = await prisma.teamMember.findMany({
@@ -32,11 +33,14 @@ router.get('/my-teams', authenticate, async (req: AuthRequest, res) => {
       },
     });
     
+    // Transform the response to include userRole at the team level
     const teams = teamMembers.map(tm => ({
       ...tm.team,
       userRole: tm.role,
       joinedAt: tm.joinedAt,
     }));
+    
+    console.log('Teams fetched for user:', req.userId, 'Count:', teams.length); // Debug
     
     res.json(teams);
   } catch (error) {
@@ -44,6 +48,7 @@ router.get('/my-teams', authenticate, async (req: AuthRequest, res) => {
     res.status(500).json({ error: 'Failed to fetch teams' });
   }
 });
+
 
 // Get single team
 router.get('/:id', authenticate, async (req: AuthRequest, res) => {
