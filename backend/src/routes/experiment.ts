@@ -64,7 +64,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res) => {
 });
 
 // Create experiment
-router.post('/', authenticate, async (req: AuthRequest, res) => {
+router.post('/new', authenticate, async (req: AuthRequest, res) => {
   try {
     const { title, hypothesis, method, teamId, tags } = req.body;
     

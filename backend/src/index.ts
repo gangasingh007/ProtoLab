@@ -7,9 +7,9 @@ import { initializeSocket } from './socket/socketServer';
 import authRoutes from './routes/auth';
 import experimentRoutes from './routes/experiment';
 import { setupPresence } from './socket/presence';
-// import paperRoutes from './routes/papers';
-// import commentRoutes from './routes/comments';
-// import teamRoutes from './routes/teams';
+import paperRoutes from './routes/papers';
+import commentRoutes from './routes/comments';
+import teamRoutes from './routes/teams';
 
 dotenv.config();
 
@@ -31,9 +31,9 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/experiments', experimentRoutes);
-// app.use('/api/papers', paperRoutes);
-// app.use('/api/comments', commentRoutes);
-// app.use('/api/teams', teamRoutes);
+app.use('/api/papers', paperRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/teams', teamRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
