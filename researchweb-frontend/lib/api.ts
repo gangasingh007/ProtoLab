@@ -97,4 +97,17 @@ export const commentsAPI = {
   getMentions: () => api.get('/comments/mentions/me'),
 };
 
+
+export const aiAPI = {
+  summarizePaper: (paperId: string) =>
+    api.post(`/ai/papers/${paperId}/summarize`),
+  getTeamInsights: (teamId: string) =>
+    api.get(`/ai/teams/${teamId}/insights`),
+  suggestNextSteps: (experimentId: string) =>
+    api.post(`/ai/experiments/${experimentId}/suggest`),
+  extractKeyInfo: (experimentId: string) =>
+    api.post(`/ai/experiments/${experimentId}/extract`),
+  quickSummary: (data: { title: string; content: string }) =>
+    api.post('/ai/papers/quick-summary', data),
+};
 export default api;

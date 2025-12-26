@@ -10,6 +10,7 @@ import { setupPresence } from './socket/presence';
 import paperRoutes from './routes/papers';
 import commentRoutes from './routes/comments';
 import teamRoutes from './routes/teams';
+import apiRoutes from "./routes/ai";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/experiments', experimentRoutes);
 app.use('/api/papers', paperRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/teams', teamRoutes);
+app.use("/api/ai",apiRoutes)
 
 // Health check
 app.get('/health', (req, res) => {
