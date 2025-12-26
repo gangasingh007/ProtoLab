@@ -11,6 +11,7 @@ import paperRoutes from './routes/papers';
 import commentRoutes from './routes/comments';
 import teamRoutes from './routes/teams';
 import apiRoutes from "./routes/ai";
+import graphRoutes from './routes/graphs';
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use('/api/papers', paperRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/teams', teamRoutes);
 app.use("/api/ai",apiRoutes)
+app.use('/api/graph', graphRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

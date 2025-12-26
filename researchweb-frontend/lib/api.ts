@@ -110,4 +110,13 @@ export const aiAPI = {
   quickSummary: (data: { title: string; content: string }) =>
     api.post('/ai/papers/quick-summary', data),
 };
+
+// Knowledge Graph
+export const graphAPI = {
+  getTeamGraph: (teamId: string) =>
+    api.get(`/graph/teams/${teamId}`),
+  getExperimentRelations: (experimentId: string) =>
+    api.get(`/graph/experiments/${experimentId}/relations`),
+};
+
 export default api;
