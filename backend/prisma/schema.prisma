@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client-js" 
 }
 
 datasource db {
@@ -15,7 +15,6 @@ model User {
   role          Role        @default(STUDENT)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  
   teams         TeamMember[]
   experiments   Experiment[]
   comments      Comment[]
@@ -34,7 +33,6 @@ model Team {
   name          String
   description   String?
   createdAt     DateTime      @default(now())
-  
   members       TeamMember[]
   experiments   Experiment[]
   papers        Paper[]
@@ -44,9 +42,8 @@ model TeamMember {
   id        String   @id @default(cuid())
   userId    String
   teamId    String
-  role      String   // "owner", "editor", "viewer"
+  role      String  
   joinedAt  DateTime @default(now())
-  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   
@@ -54,27 +51,25 @@ model TeamMember {
 }
 
 model Experiment {
-  id              String    @id @default(cuid())
-  title           String
-  hypothesis      String?
-  method          String?
-  observations    String?
-  results         String?
-  failures        String?
-  nextSteps       String?
-  status          ExpStatus @default(IN_PROGRESS)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
-  authorId        String
-  teamId          String
-  
-  author          User      @relation(fields: [authorId], references: [id])
-  team            Team      @relation(fields: [teamId], references: [id])
-  comments        Comment[]
-  tags            Tag[]
-  experimentPapers ExperimentPaper[]
-  codeVersions    CodeVersion[]
+  id                String    @id @default(cuid())
+  title             String
+  hypothesis        String?
+  method            String?
+  observations      String?
+  results           String?
+  failures          String?
+  nextSteps         String?
+  status            ExpStatus @default(IN_PROGRESS)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  authorId          String
+  teamId            String
+  author            User      @relation(fields: [authorId], references: [id])
+  team              Team      @relation(fields: [teamId], references: [id])
+  comments          Comment[]
+  tags              Tag[]
+  experimentPapers  ExperimentPaper[]
+  codeVersions      CodeVersion[]
 }
 
 enum ExpStatus {
@@ -84,30 +79,27 @@ enum ExpStatus {
 }
 
 model Paper {
-  id              String    @id @default(cuid())
-  title           String
-  authors         String?
-  url             String?
-  pdfUrl          String?
-  summary         String?
-  findings        String?
-  methodology     String?
-  limitations     String?
-  uploadedAt      DateTime  @default(now())
-  
-  uploadedById    String
-  teamId          String
-  
-  uploadedBy      User      @relation(fields: [uploadedById], references: [id])
-  team            Team      @relation(fields: [teamId], references: [id])
-  experimentPapers ExperimentPaper[]
+  id                String    @id @default(cuid())
+  title             String
+  authors           String?
+  url               String?
+  pdfUrl            String?
+  summary           String?
+  findings          String?
+  methodology       String?
+  limitations       String?
+  uploadedAt        DateTime  @default(now())
+  uploadedById      String
+  teamId            String
+  uploadedBy        User      @relation(fields: [uploadedById], references: [id])
+  team              Team      @relation(fields: [teamId], references: [id])
+  experimentPapers  ExperimentPaper[]
 }
 
 model ExperimentPaper {
   id            String     @id @default(cuid())
   experimentId  String
   paperId       String
-  
   experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
   paper         Paper      @relation(fields: [paperId], references: [id], onDelete: Cascade)
   
@@ -117,12 +109,10 @@ model ExperimentPaper {
 model Comment {
   id            String     @id @default(cuid())
   content       String
-  mentions      String[]   // Array of user IDs mentioned
+  mentions      String[] 
   createdAt     DateTime   @default(now())
-  
   authorId      String
   experimentId  String
-  
   author        User       @relation(fields: [authorId], references: [id])
   experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 }
@@ -138,9 +128,8 @@ model CodeVersion {
   commitHash    String
   branch        String     @default("main")
   repoUrl       String?
-  environment   String?    // JSON string of dependencies
+  environment   String?
   createdAt     DateTime   @default(now())
-  
   experimentId  String
   experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
 }
