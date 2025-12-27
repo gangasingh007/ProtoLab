@@ -136,7 +136,7 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
                <div className={cn(
                   "flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium transition-colors border",
                   isConnected 
-                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
+                    ? "bg-teald-500/10 text-teald-600 border-teald-500/20" 
                     : "bg-amber-500/10 text-amber-600 border-amber-500/20"
                 )}>
                   {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}

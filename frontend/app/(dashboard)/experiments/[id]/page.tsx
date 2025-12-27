@@ -6,35 +6,22 @@ import { experimentsAPI, aiAPI } from '@/lib/api';
 import { Experiment } from '@/types';
 import { useSocket } from '@/hooks/useSocket';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { CommentSection } from '@/components/experiments/CommentSection'; // Assuming path
+import { CommentSection } from '@/components/experiments/CommentSection'; 
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  ArrowLeft,
-  Loader2,
-  Save,
-  Sparkles,
-  MessageSquare,
-  FileText,
-  Code,
-  Network,
-  Edit,
-  Microscope,
-  ClipboardList,
-  AlertTriangle,
-  CheckCircle2,
-  Share2,
-  MoreVertical,
-  FlaskConical,
-  Eye
+  ArrowLeft, Loader2, Save, Sparkles, MessageSquare, FileText, Code, 
+  Network, Edit3, Microscope, ClipboardList, AlertTriangle, 
+  CheckCircle2, Share2, FlaskConical, Eye, ChevronRight, Calendar, Bot,
+  Lightbulb, TrendingUp, AlertOctagon, Copy
 } from 'lucide-react';
-import { formatDate, getStatusColor, cn } from '@/lib/utils';
+import { formatDate, cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function ExperimentDetailPage() {
@@ -67,18 +54,17 @@ export default function ExperimentDetailPage() {
     loadExperiment();
   }, [experimentId]);
 
-  // Socket Logic (Preserved from your code)
+  // Socket Logic
   useEffect(() => {
     if (socket && isConnected && experiment) {
       socket.emit('join-experiment', experimentId);
 
       socket.on('experiment-changed', (data: { changes: Partial<Experiment> }) => {
         setExperiment((prev) => (prev ? { ...prev, ...data.changes } : prev));
-        // Also update local edit state if we aren't currently editing to keep sync
         if (!isEditing) {
              setEditData(prev => ({ ...prev, ...data.changes } as any));
         }
-        toast('Experiment updated by collaborator', { icon: '🔄' });
+        toast('Updated remotely', { icon: '🔄' });
       });
 
       return () => {
@@ -114,38 +100,57 @@ export default function ExperimentDetailPage() {
       const updated = await experimentsAPI.updateExperiment(experimentId, editData);
       setExperiment(updated);
       setIsEditing(false);
-      toast.success('Notebook saved successfully');
+      toast.success('Notebook saved');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to save changes');
+      toast.error('Failed to save changes');
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Quick status update without entering full edit mode
   const handleStatusChange = async (newStatus: string) => {
     const previousStatus = experiment?.status;
-    // Optimistic update
     setExperiment(prev => prev ? { ...prev, status: newStatus as any } : null);
     setEditData(prev => ({ ...prev, status: newStatus as any }));
 
     try {
-        await experimentsAPI.updateExperiment(experimentId, { 
-            //@ts-ignore
-            status: newStatus });
-        toast.success(`Status updated to ${newStatus.replace('_', ' ')}`);
+        //@ts-ignore
+        await experimentsAPI.updateExperiment(experimentId, { status: newStatus });
+        toast.success(`Status updated`);
     } catch (error) {
-        // Revert on failure
         setExperiment(prev => prev ? { ...prev, status: previousStatus as any } : null);
         toast.error("Failed to update status");
     }
   }
 
+  const parseSuggestions = (input: string | string[]) => {
+    if (Array.isArray(input)) return input;
+    if (!input || typeof input !== 'string') return [];
+
+    const s = input.trim();
+    // Try to extract numbered list items like "1. ... 2. ..."
+    const numbered = s.match(/\d+\.[\s\S]*?(?=(\n\d+\.|$))/g);
+    if (numbered && numbered.length > 0) {
+      return numbered.map(item => item.replace(/^\d+\.\s*/, '').trim());
+    }
+
+    // Otherwise split into paragraphs (double newline)
+    const paragraphs = s.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
+    if (paragraphs.length > 1) return paragraphs;
+
+    // Fallback: split by single newline
+    return s.split('\n').map(l => l.trim()).filter(Boolean);
+  };
+
   const handleGenerateInsights = async () => {
     setIsGeneratingInsights(true);
     try {
       const data = await aiAPI.suggestNextSteps(experimentId);
-      setAiSuggestions(data.suggestions || []);
+      // Accept either a string or an array and parse into items for display
+      // @ts-ignore
+      const raw = data.suggestion ?? data.suggestions ?? data;
+      const parsed = parseSuggestions(raw as any);
+      setAiSuggestions(parsed);
       toast.success('AI insights generated');
     } catch (error: any) {
       toast.error('Failed to generate insights');
@@ -157,318 +162,284 @@ export default function ExperimentDetailPage() {
   if (isLoading) return <LoadingSkeleton />;
 
   if (!experiment) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-        <div className="p-6 bg-white rounded-xl shadow-lg text-center">
-            <h2 className="text-xl font-bold mb-2 text-slate-800">Experiment not found</h2>
-            <Button onClick={() => router.push('/teams')}>Return to Workspace</Button>
-        </div>
-      </div>
-    );
+    return <div className="h-screen bg-[#171717]/90 text-white flex items-center justify-center">Experiment not found</div>;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50/50 dark:bg-slate-950/50">
-      
-      {/* 1. Sticky Header */}
-      <header className="sticky top-0 z-30 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-muted-foreground">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back
-                </Button>
-                <Separator orientation="vertical" className="h-6" />
-                <div className="flex flex-col">
-                    <h1 className="text-lg font-bold leading-tight truncate max-w-md">{experiment.title}</h1>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{experiment.createdBy?.name}</span>
-                        <span>•</span>
-                        <span>Last updated {formatDate(experiment.updatedAt)}</span>
-                    </div>
+    <div className="flex h-screen bg-[#171717]/90 text-slate-200 font-sans selection:bg-teald-500/30">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#171717]/90">
+        
+        {/* Header */}
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#171717]/80 backdrop-blur-md sticky top-0 z-10 shrink-0">
+           <div className="flex items-center gap-4">
+              <Button size="icon" variant="ghost" onClick={() => router.back()} className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/5">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <div className="flex items-center gap-2 cursor-pointer text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
+                   <span onClick={() => router.push('/teams')}>Workspace</span> <ChevronRight className="w-3 h-3" />
+                   <span>Team</span> <ChevronRight className="w-3 h-3" />
+                   <span className="text-teal-500">Protocol {experimentId.slice(-4)}</span>
                 </div>
-            </div>
+                <h2 className="text-base font-medium text-white tracking-tight truncate max-w-md">{experiment.title}</h2>
+              </div>
+           </div>
+           
+           <div className="flex items-center gap-4">
+              <Select value={editData.status} onValueChange={handleStatusChange}>
+                  <SelectTrigger className="h-8 w-[140px] bg-[#262626] border-white/10 text-xs font-medium text-slate-200">
+                       <div className="flex items-center gap-2">
+                          <div className={cn("w-1.5 h-1.5 rounded-full", editData.status === 'IN_PROGRESS' ? "bg-teald-500 animate-pulse" : "bg-slate-500")} />
+                          <SelectValue />
+                       </div>
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#262626] border-white/10 text-slate-200">
+                      <SelectItem value="PLANNING">Planning</SelectItem>
+                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                      <SelectItem value="BLOCKED">Blocked</SelectItem>
+                      <SelectItem value="COMPLETE">Complete</SelectItem>
+                  </SelectContent>
+              </Select>
 
-            <div className="flex items-center gap-3">
-                {/* Interactive Status Badge */}
-                <Select value={editData.status} onValueChange={handleStatusChange}>
-                    <SelectTrigger className={cn("h-8 border-transparent hover:bg-muted/50 transition-colors w-[140px]", getStatusColor(editData.status))}>
-                         <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="PLANNING">Planning</SelectItem>
-                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                        <SelectItem value="BLOCKED">Blocked</SelectItem>
-                        <SelectItem value="COMPLETED">Completed</SelectItem>
-                    </SelectContent>
-                </Select>
-                
-                <Separator orientation="vertical" className="h-6 hidden sm:block" />
+              <Separator orientation="vertical" className="h-6 bg-white/10" />
 
-                {isEditing ? (
-                    <>
-                        <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} disabled={isSaving}>
-                            Cancel
-                        </Button>
-                        <Button size="sm" onClick={handleSave} disabled={isSaving} className="min-w-[100px]">
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4 mr-2" /> Save</>}
-                        </Button>
-                    </>
-                ) : (
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit Notebook
+              {isEditing ? (
+                 <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-white">Cancel</Button>
+                    <Button size="sm" onClick={handleSave} className="bg-teald-600 hover:bg-teald-700 text-white">
+                        {isSaving ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Save className="w-3 h-3 mr-2" />} Save
                     </Button>
-                )}
+                 </div>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="h-8 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs">
+                    <Edit3 className="w-3 h-3 mr-2" /> Edit Notebook
+                </Button>
+              )}
+           </div>
+        </header>
+
+        {/* Workspace Body - Fixed scrolling */}
+        <div className="flex-1 overflow-hidden">
+          <Tabs defaultValue="protocol" className="h-full flex flex-col">
+            {/* Tab Headers - Fixed */}
+            <div className="px-8 pt-6 pb-2 shrink-0 border-b border-white/5">
+                <TabsList className="bg-transparent p-0 gap-6 h-auto w-full justify-start rounded-none">
+                    <TabItem value="protocol" icon={FlaskConical} label="Protocol" />
+                    <TabItem value="notes" icon={ClipboardList} label="Field Notes" />
+                    <TabItem value="analysis" icon={Microscope} label="Analysis" />
+                    <TabItem value="discussion" icon={MessageSquare} label="Discussion" badge={0} />
+                </TabsList>
             </div>
-        </div>
-      </header>
 
-      {/* 2. Main Workspace Layout */}
-      <main className="flex-1 overflow-hidden">
-        <div className="container mx-auto px-4 h-full py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-                
-                {/* Left: Main Notebook (8 columns) */}
-                <div className="lg:col-span-8 flex flex-col h-full overflow-hidden">
-                    <Tabs defaultValue="protocol" className="flex flex-col h-full">
-                        <TabsList className="w-full justify-start border-b border-border/50 bg-transparent p-0 rounded-none h-auto mb-4">
-                            <TabTrigger value="protocol" icon={FlaskConical} label="Protocol" />
-                            <TabTrigger value="notes" icon={ClipboardList} label="Field Notes" />
-                            <TabTrigger value="analysis" icon={Microscope} label="Analysis" />
-                            <TabTrigger value="discussion" icon={MessageSquare} label="Discussion" badge={0} />
-                        </TabsList>
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-8 max-w-4xl mx-auto space-y-8 pb-20">
+                <TabsContent value="protocol" className="space-y-6 mt-0 animate-in fade-in duration-300">
+                     <SectionBlock 
+                        title="Hypothesis"
+                        description="Scientific Question & Expected Outcome"
+                        icon={Sparkles}
+                        iconColor="text-amber-500"
+                        value={editData.hypothesis}
+                        onChange={(v: any) => setEditData(prev => ({...prev, hypothesis: v}))}
+                        isEditing={isEditing}
+                        placeholder="State your hypothesis..."
+                     />
+                     <SectionBlock 
+                        title="Methodology"
+                        description="Detailed procedural steps and conditions"
+                        icon={FileText}
+                        iconColor="text-blue-500"
+                        value={editData.method}
+                        onChange={(v: any) => setEditData(prev => ({...prev, method: v}))}
+                        isEditing={isEditing}
+                        placeholder="Step 1..."
+                        fontMono
+                     />
+                </TabsContent>
 
-                        <div className="flex-1 overflow-y-auto pr-2 pb-10 space-y-6 scrollbar-thin scrollbar-thumb-muted">
-                            
-                            <TabsContent value="protocol" className="space-y-6 mt-0 animate-in fade-in duration-300">
-                                <SectionCard 
-                                    title="Hypothesis" 
-                                    icon={Sparkles} 
-                                    iconColor="text-amber-500"
-                                    description="What are we trying to prove?"
-                                    value={editData.hypothesis}
-                                    onChange={(v: any) => setEditData(prev => ({...prev, hypothesis: v}))}
-                                    isEditing={isEditing}
-                                    placeholder="State your hypothesis clearly..."
-                                />
-                                <SectionCard 
-                                    title="Methodology" 
-                                    icon={FileText} 
-                                    iconColor="text-blue-500"
-                                    description="Procedures and protocols."
-                                    value={editData.method}
-                                    onChange={(v:any) => setEditData(prev => ({...prev, method: v}))}
-                                    isEditing={isEditing}
-                                    placeholder="Step 1..."
-                                    className="font-mono text-sm"
-                                    minHeight="h-64"
-                                />
-                            </TabsContent>
+                <TabsContent value="notes" className="space-y-6 mt-0 animate-in fade-in duration-300">
+                     <SectionBlock 
+                        title="Observations"
+                        icon={Eye}
+                        iconColor="text-teal-500"
+                        value={editData.observations}
+                        onChange={(v: any) => setEditData(prev => ({...prev, observations: v}))}
+                        isEditing={isEditing}
+                        minHeight="min-h-[300px]"
+                     />
+                     <div className="grid grid-cols-2 gap-6">
+                        <SectionBlock title="Results" icon={CheckCircle2} iconColor="text-teal-500" value={editData.results} onChange={(v:any) => setEditData(prev => ({...prev, results: v}))} isEditing={isEditing} />
+                        <SectionBlock title="Failures" icon={AlertTriangle} iconColor="text-rose-500" value={editData.failures} onChange={(v:any) => setEditData(prev => ({...prev, failures: v}))} isEditing={isEditing}  />
+                     </div>
+                </TabsContent>
 
-                            <TabsContent value="notes" className="space-y-6 mt-0 animate-in fade-in duration-300">
-                                <SectionCard 
-                                    title="Observations" 
-                                    icon={Eye} 
-                                    iconColor="text-emerald-500"
-                                    description="Raw data and daily logs."
-                                    value={editData.observations}
-                                    onChange={(v : any) => setEditData(prev => ({...prev, observations: v}))}
-                                    isEditing={isEditing}
-                                    placeholder="Log observations here..."
-                                    minHeight="h-48"
-                                />
-                                <SectionCard 
-                                    title="Results" 
-                                    icon={CheckCircle2} 
-                                    iconColor="text-indigo-500"
-                                    description="Measured outcomes."
-                                    value={editData.results}
-                                    onChange={(v:any ) => setEditData(prev => ({...prev, results: v}))}
-                                    isEditing={isEditing}
-                                    placeholder="Enter results..."
-                                />
-                                <SectionCard 
-                                    title="Failures & Deviations" 
-                                    icon={AlertTriangle} 
-                                    iconColor="text-red-500"
-                                    description="What went wrong?"
-                                    value={editData.failures}
-                                    onChange={(v:any ) => setEditData(prev => ({...prev, failures: v}))}
-                                    isEditing={isEditing}
-                                    placeholder="Document any deviations from protocol..."
-                                    variant="destructive"
-                                />
-                            </TabsContent>
+                <TabsContent value="analysis" className="space-y-6 mt-0 animate-in fade-in duration-300">
+                     <ResearchReportRenderer 
+                        suggestions={aiSuggestions} 
+                        isGenerating={isGeneratingInsights} 
+                        onGenerate={handleGenerateInsights} 
+                     />
+                     
+                     <SectionBlock 
+                        title="Next Steps"
+                        icon={Share2}
+                        iconColor="text-violet-500"
+                        value={editData.nextSteps}
+                        onChange={(v: any) => setEditData(prev => ({...prev, nextSteps: v}))}
+                        isEditing={isEditing}
+                     />
+                </TabsContent>
 
-                            <TabsContent value="analysis" className="space-y-6 mt-0 animate-in fade-in duration-300">
-                                <AIInsightCard 
-                                    onGenerate={handleGenerateInsights} 
-                                    isGenerating={isGeneratingInsights}
-                                    suggestions={aiSuggestions}
-                                />
-                                <SectionCard 
-                                    title="Next Steps" 
-                                    icon={Share2} 
-                                    iconColor="text-violet-500"
-                                    description="Action items based on findings."
-                                    value={editData.nextSteps}
-                                    onChange={(v:any) => setEditData(prev => ({...prev, nextSteps: v}))}
-                                    isEditing={isEditing}
-                                    placeholder="Plan next steps..."
-                                />
-                            </TabsContent>
-
-                            <TabsContent value="discussion" className="h-full mt-0 animate-in fade-in duration-300">
-                                <div className="h-[600px]">
-                                    <CommentSection experimentId={experimentId} />
-                                </div>
-                            </TabsContent>
-                        </div>
-                    </Tabs>
-                </div>
-
-                {/* Right: Sidebar / Meta (4 columns) */}
-                <div className="lg:col-span-4 border-l border-border/50 pl-6 hidden lg:block overflow-y-auto">
-                    <div className="space-y-6 py-2">
-                        
-                        {/* Tags Widget */}
-                        <div className="space-y-3">
-                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tags</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {experiment.tags?.length ? (
-                                    experiment.tags.map(tag => (
-                                        <Badge key={tag.id} variant="secondary" className="px-2 py-1">{tag.name}</Badge>
-                                    ))
-                                ) : (
-                                    <span className="text-sm text-muted-foreground italic">No tags assigned.</span>
-                                )}
-                            </div>
-                        </div>
-
-                        <Separator />
-
-                        {/* Linked Assets */}
-                        <div className="space-y-3">
-                             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Assets</h3>
-                             <Button variant="outline" className="w-full justify-start" disabled>
-                                <FileText className="w-4 h-4 mr-2" />
-                                {experiment.papers?.length || 0} Linked Papers
-                             </Button>
-                             <Button variant="outline" className="w-full justify-start" disabled>
-                                <Code className="w-4 h-4 mr-2" />
-                                {experiment.codeVersions?.length || 0} Code Versions
-                             </Button>
-                             <Button variant="outline" className="w-full justify-start" disabled>
-                                <Network className="w-4 h-4 mr-2" />
-                                Graph Node
-                             </Button>
-                        </div>
-
-                        <Separator />
-
-                        {/* Collaborators (Mock) */}
-                        <div className="space-y-3">
-                             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Team</h3>
-                             <div className="flex items-center gap-3">
-                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                                     {experiment.createdBy?.name?.charAt(0)}
-                                 </div>
-                                 <div className="text-sm">
-                                     <p className="font-medium leading-none">{experiment.createdBy?.name}</p>
-                                     <p className="text-xs text-muted-foreground">Owner</p>
-                                 </div>
-                             </div>
-                        </div>
-
+                <TabsContent value="discussion" className="mt-0">
+                    <div className="min-h-[600px]">
+                      <CommentSection experimentId={experimentId} />
                     </div>
-                </div>
-
+                </TabsContent>
+              </div>
             </div>
+          </Tabs>
         </div>
       </main>
     </div>
   );
 }
 
-// --- Helper Components ---
+// --- Enhanced Helper Components ---
 
-function TabTrigger({ value, icon: Icon, label, badge }: any) {
-    return (
-        <TabsTrigger 
-            value={value}
-            className="group data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none px-4 pb-3 pt-2"
-        >
-            <div className="flex items-center gap-2 text-muted-foreground group-data-[state=active]:text-primary transition-colors">
-                <Icon className="w-4 h-4" />
-                <span>{label}</span>
-                {badge > 0 && (
-                    <span className="bg-muted text-foreground text-[10px] px-1.5 rounded-full">{badge}</span>
-                )}
-            </div>
-        </TabsTrigger>
-    );
+function TabItem({ value, icon: Icon, label, badge }: any) {
+   return (
+      <TabsTrigger 
+         value={value} 
+         className="data-[state=active]:bg-[#262626] data-[state=active]:text-teald-400 data-[state=active]:border-teald-500 border-b-2 border-transparent px-4 py-2 text-slate-400 hover:text-slate-200 transition-all rounded-t-md gap-2"
+      >
+         <Icon className="w-4 h-4" />
+         <span>{label}</span>
+         {badge !== undefined && badge > 0 && <span className="text-[10px] bg-teald-500/20 text-teald-400 px-1.5 rounded-full">{badge}</span>}
+      </TabsTrigger>
+   )
 }
 
-function SectionCard({ title, icon: Icon, iconColor, description, value, onChange, isEditing, placeholder, className, minHeight, variant = 'default' }: any) {
+function SectionBlock({ title, description, icon: Icon, iconColor, value, onChange, isEditing, placeholder, fontMono, minHeight, variant }: any) {
+    const isDanger = variant === 'danger';
     return (
-        <Card className={cn("overflow-hidden border-border/60 shadow-sm", variant === 'destructive' && "border-red-200 bg-red-50/10 dark:bg-red-900/10")}>
-            <CardHeader className="pb-3 bg-muted/20 border-b border-border/40">
-                <div className="flex items-center gap-2">
-                    <Icon className={cn("w-4 h-4", iconColor)} />
-                    <CardTitle className="text-base">{title}</CardTitle>
-                </div>
-                {description && <CardDescription>{description}</CardDescription>}
-            </CardHeader>
-            <CardContent className="p-0">
-                {isEditing ? (
+        <div className="space-y-3">
+             <div className="flex items-center gap-2 mb-2">
+                 <div className={cn("p-1.5 rounded-lg bg-[#1a1a1a] border border-white/5", iconColor)}>
+                    <Icon className="w-4 h-4" />
+                 </div>
+                 <div>
+                    <h3 className={cn("text-sm font-bold text-slate-200", isDanger && "text-rose-400")}>{title}</h3>
+                    {description && <p className="text-xs text-slate-500">{description}</p>}
+                 </div>
+             </div>
+             
+             <div className={cn(
+                 "bg-[#1b1b1b] border border-white/5 rounded-xl overflow-hidden transition-all",
+                 isDanger ? "border-rose-900/20 bg-rose-950/5" : "border-white/5",
+                 isEditing && "ring-1 ring-teal-500/50 border-teald-500/20"
+             )}>
+                 {isEditing ? (
                     <Textarea 
                         value={value} 
                         onChange={(e) => onChange(e.target.value)} 
                         placeholder={placeholder}
-                        className={cn("border-0 focus-visible:ring-0 rounded-none resize-none p-4 bg-background", className, minHeight || "h-32")}
+                        className={cn("bg-transparent border-0 resize-none p-5 text-white focus-visible:ring-0", fontMono && "font-mono text-sm leading-7", minHeight || "h-40")}
                     />
-                ) : (
-                    <div className={cn("p-4 whitespace-pre-wrap text-sm leading-relaxed", minHeight || "h-32", !value && "text-muted-foreground italic")}>
-                        {value || "No entry recorded."}
+                 ) : (
+                    <div className={cn("p-5 whitespace-pre-wrap text-sm leading-7 text-white", fontMono && "font-mono text-white", minHeight || "h-40")}>
+                        {value || <span className="text-slate-600 italic">No content recorded.</span>}
                     </div>
-                )}
-            </CardContent>
-        </Card>
-    );
+                 )}
+             </div>
+        </div>
+    )
 }
 
-function AIInsightCard({ onGenerate, isGenerating, suggestions }: any) {
+function ResearchReportRenderer({ suggestions, isGenerating, onGenerate }: any) {
+    const getIconForSuggestion = (text: string) => {
+        const t = text.toLowerCase();
+        if (t.includes('risk') || t.includes('warning') || t.includes('fail')) return <AlertOctagon className="w-4 h-4 text-rose-400" />;
+        if (t.includes('optimize') || t.includes('improve')) return <TrendingUp className="w-4 h-4 text-teald-400" />;
+        if (t.includes('hypothesis') || t.includes('consider')) return <Lightbulb className="w-4 h-4 text-amber-400" />;
+        return <CheckCircle2 className="w-4 h-4 text-teal-400" />;
+    };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(suggestions.join('\n'));
+        toast.success("Report copied to clipboard");
+    }
+
     return (
-        <Card className="border-2 border-indigo-500/20 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20">
-            <CardHeader className="pb-2">
+        <Card className="bg-gradient-to-br from-[#171717] to-[#171717] border border-white/15 rounded-xl shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[60px] rounded-full pointer-events-none" />
+            
+            <CardHeader className="pb-4 border-b border-white/5">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-indigo-500" />
-                        <CardTitle className="text-base text-indigo-700 dark:text-indigo-300">AI Assistant</CardTitle>
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center">
+                            <Bot className="w-5 h-5 text-teal-400" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-base text-teal-100">Research Analysis</CardTitle>
+                            <CardDescription className="text-slate-400 text-xs">AI-powered pattern detection & next steps</CardDescription>
+                        </div>
                     </div>
-                    <Button size="sm" variant="outline" onClick={onGenerate} disabled={isGenerating} className="bg-background/50">
-                        {isGenerating ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
-                        Generate Insights
-                    </Button>
+                    <div className="flex gap-2">
+                        {suggestions.length > 0 && (
+                            <Button size="icon" variant="ghost" onClick={copyToClipboard} className="h-8 w-8 text-slate-500 hover:text-white">
+                                <Copy className="w-3.5 h-3.5" />
+                            </Button>
+                        )}
+                        <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={onGenerate} 
+                            disabled={isGenerating} 
+                            className="bg-teal-500/10 border-teal-500/30 text-teal-300 hover:bg-teal-500/20 hover:text-teal-200"
+                        >
+                            {isGenerating ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
+                            {suggestions.length > 0 ? "Regenerate" : "Analyze Data"}
+                        </Button>
+                    </div>
                 </div>
             </CardHeader>
-            <CardContent>
+
+            <CardContent className="p-0">
                 {suggestions.length > 0 ? (
-                    <div className="space-y-2 mt-2">
-                        {suggestions.map((suggestion: string, i: number) => (
-                            <div key={i} className="flex gap-3 items-start p-3 bg-background/60 rounded-lg border border-indigo-100 dark:border-indigo-900 text-sm">
-                                <span className="bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300 w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold shrink-0">
-                                    {i + 1}
-                                </span>
-                                <span className="text-foreground/80">{suggestion}</span>
-                            </div>
-                        ))}
+                    <div className="divide-y divide-white/5">
+                        {suggestions.map((item: string, idx: number) => {
+                            const parts = item.split(':');
+                            const hasTitle = parts.length > 1;
+                            const title = hasTitle ? parts[0].trim() : `Insight ${idx + 1}`;
+                            const content = hasTitle ? parts.slice(1).join(':').trim() : item;
+
+                            return (
+                                <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors flex gap-4 group animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${idx * 100}ms` }}>
+                                    <div className="mt-1 shrink-0">
+                                        <div className="w-6 h-6 rounded-md bg-[#171717] border border-white/10 flex items-center justify-center">
+                                            {getIconForSuggestion(item)}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1 flex-1 min-w-0">
+                                        <h5 className="text-sm font-medium text-slate-200">
+                                            {title}
+                                        </h5>
+                                        <p className="text-sm text-slate-400 leading-relaxed">
+                                            {content}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
                 ) : (
-                    <p className="text-sm text-muted-foreground p-2">
-                        Click generate to analyze your observations and get suggested next steps.
-                    </p>
+                    <div className="p-12 text-center text-slate-500 flex flex-col items-center justify-center gap-4">
+                        <div className="w-16 h-16 rounded-full bg-teal-500/5 flex items-center justify-center">
+                            <Microscope className="w-8 h-8 opacity-40 text-teal-400" />
+                        </div>
+                        <p className="text-sm max-w-xs">Run the analysis to detect anomalies in your methodology and generate suggested next steps.</p>
+                    </div>
                 )}
             </CardContent>
         </Card>
@@ -477,21 +448,11 @@ function AIInsightCard({ onGenerate, isGenerating, suggestions }: any) {
 
 function LoadingSkeleton() {
     return (
-        <div className="h-screen w-full p-6 space-y-6">
-            <div className="flex justify-between">
-                <Skeleton className="h-8 w-64" />
-                <Skeleton className="h-8 w-32" />
-            </div>
-            <div className="grid grid-cols-12 gap-6 h-full">
-                <div className="col-span-8 space-y-6">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-64 w-full" />
-                    <Skeleton className="h-64 w-full" />
-                </div>
-                <div className="col-span-4 space-y-4">
-                    <Skeleton className="h-32 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                </div>
+        <div className="h-screen w-full bg-[#171717] p-8 flex gap-8">
+            <Skeleton className="h-full w-64 bg-white/5 rounded-xl" />
+            <div className="flex-1 space-y-6">
+                <Skeleton className="h-16 w-full bg-white/5 rounded-xl" />
+                <Skeleton className="h-96 w-full bg-white/5 rounded-xl" />
             </div>
         </div>
     )

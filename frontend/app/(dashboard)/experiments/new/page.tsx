@@ -176,8 +176,8 @@ export default function NewExperimentPage() {
             <Card className="border-border/60 shadow-sm bg-card/50">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                    <div className="p-2 bg-emerald-500/10 rounded-lg">
-                        <ScrollText className="w-4 h-4 text-emerald-500" />
+                    <div className="p-2 bg-teald-500/10 rounded-lg">
+                        <ScrollText className="w-4 h-4 text-teald-500" />
                     </div>
                     <CardTitle className="text-base">Methodology</CardTitle>
                 </div>

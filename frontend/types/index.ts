@@ -132,7 +132,7 @@ export interface KnowledgeGraph {
 
 export interface AIInsight {
   summary?: string;
-  suggestions?: string[];
+  suggestion?: string[];
   patterns?: string[];
   recommendations?: string[];
 }

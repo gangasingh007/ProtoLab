@@ -52,16 +52,13 @@ export function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col h-full w-[280px] bg-card/95 backdrop-blur-sm border-r border-border/60 relative">
+    <div className="flex flex-col h-full w-[280px] bg-card/95 backdrop-blur-sm border-r border-border relative">
       
       {/* Brand Header */}
       <div className="p-6 pb-4">
         <Link href="/teams" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-all duration-300">
-            <FlaskConical className="w-6 h-6 text-primary-foreground" />
-          </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold tracking-tight text-foreground">ProtoLab</span>
+            <span className="text-lg font-bold tracking-tight text-primary">ProtoLab</span>
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Research Suite</span>
           </div>
         </Link>
@@ -70,7 +67,7 @@ export function Sidebar() {
       <div className="px-4 mb-4">
         <Button variant="outline" className="w-full justify-start gap-2 shadow-sm border-dashed">
           <PlusCircle className="w-4 h-4 text-primary" />
-          <span className="font-medium">New Project</span>
+          <span className="font-medium text-white">New Project</span>
         </Button>
       </div>
 
