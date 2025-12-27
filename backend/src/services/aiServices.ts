@@ -230,7 +230,7 @@ Format as JSON with keys: methods (array), metrics (array), findings (array)
       
       if (jsonMatch) {
         //@ts-ignore
-        response = jsonMatch[1];
+        response = jsonMatch ;
       }
 
       const parsed = JSON.parse(response);
@@ -262,7 +262,7 @@ Format as JSON with keys: methods (array), metrics (array), findings (array)
       
       if (jsonMatch) {
         //@ts-ignore
-        response = jsonMatch[1];
+        response = jsonMatch ;
       }
 
       const parsed = JSON.parse(response);
@@ -291,7 +291,7 @@ Format as JSON with keys: methods (array), metrics (array), findings (array)
       
       if (jsonMatch) {
         //@ts-ignore
-        response  = jsonMatch[1];
+        response  = jsonMatch ;
       }
 
       const parsed = JSON.parse(response);
