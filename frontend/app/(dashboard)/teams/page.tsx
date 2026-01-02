@@ -282,10 +282,10 @@ function TeamCard({ team, viewMode, onClick, index }: { team: any; viewMode: 'gr
       <div 
         onClick={onClick}
         style={{ animationDelay: `${index * 50}ms` }}
-        className="group flex items-center justify-between p-5 bg-card hover:bg-accent/30 border border-border/60 rounded-2xl cursor-pointer transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 animate-in fade-in slide-in-from-left-4"
+        className="group flex items-center justify-between p-5 bg-gradient-to-br from-muted/40 to-transparent border border-border/60 hover:bg-accent/30 border border-border/60 rounded-2xl cursor-pointer transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 animate-in fade-in slide-in-from-left-4"
       >
         <div className="flex items-center gap-5 flex-1 min-w-0">
-          <div className={cn("w-14 h-14 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shrink-0", gradientClass)}>
+          <div className={cn("w-14 bg-teal-500 h-14 rounded-xl flex items-center justify-center font-bold text-black shadow-lg shrink-0")}>
             {initials}
           </div>
           <div className="flex-1 min-w-0">
@@ -329,7 +329,7 @@ function TeamCard({ team, viewMode, onClick, index }: { team: any; viewMode: 'gr
     <Card 
       onClick={onClick}
       style={{ animationDelay: `${index * 75}ms` }}
-      className="group relative overflow-hidden cursor-pointer border-border/60 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 bg-card/50 backdrop-blur animate-in fade-in zoom-in-95"
+      className="group relative overflow-hidden cursor-pointer border-border/60 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500  bg-card/50 backdrop-blur animate-in fade-in zoom-in-95"
     >
       {/* Gradient Top Border */}
       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary/60 via-primary to-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -433,7 +433,7 @@ function EmptyState({ isSearching, onClear, onCreate }: { isSearching: boolean; 
     <Card className="border-dashed border-2 border-border/60 bg-gradient-to-br from-muted/30 to-transparent shadow-none">
       <CardContent className="flex flex-col items-center justify-center py-24 text-center">
         <div className="relative mb-8">
-          <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+          <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
           <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center ring-8 ring-primary/5">
             <Microscope className="w-12 h-12 text-primary" />
           </div>

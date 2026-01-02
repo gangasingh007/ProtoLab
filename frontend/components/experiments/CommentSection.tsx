@@ -8,16 +8,18 @@ import { useSocket } from '@/hooks/useSocket';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Send, 
   Loader2, 
   MessageSquare, 
   Wifi, 
-  WifiOff, 
-  MessageCircle 
+  MessageCircle,
+  MoreVertical,
+  Reply
 } from 'lucide-react';
-import { formatDateTime, getInitials } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { formatDateTime, getInitials, cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import toast from 'react-hot-toast';
 
@@ -33,7 +35,6 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   
-  // Ref for auto-scrolling to bottom of chat
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,29 +48,14 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
 
       const handleCommentAdded = (comment: Comment) => {
         setComments((prev) => [...prev, comment]);
-        // Optional: Scroll to bottom on new message
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       };
 
-      const handleCommentUpdated = (updatedComment: Comment) => {
-        setComments((prev) =>
-          prev.map((c) => (c.id === updatedComment.id ? updatedComment : c))
-        );
-      };
-
-      const handleCommentDeleted = ({ commentId }: { commentId: string }) => {
-        setComments((prev) => prev.filter((c) => c.id !== commentId));
-      };
-
       socket.on('comment-added', handleCommentAdded);
-      socket.on('comment-updated', handleCommentUpdated);
-      socket.on('comment-deleted', handleCommentDeleted);
 
       return () => {
         socket.emit('leave-experiment', experimentId);
         socket.off('comment-added', handleCommentAdded);
-        socket.off('comment-updated', handleCommentUpdated);
-        socket.off('comment-deleted', handleCommentDeleted);
       };
     }
   }, [socket, isConnected, experimentId]);
@@ -96,161 +82,158 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
         experimentId,
       });
       setNewComment('');
-      // Scroll to bottom after sending
       setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to post comment');
+      toast.error('Failed to post comment');
     } finally {
       setIsSending(false);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary/50" />
-        <p className="text-sm text-muted-foreground animate-pulse">Loading discussion...</p>
+      <div className="flex flex-col items-center justify-center h-full space-y-3 bg-[#151921] rounded-xl border border-white/5">
+        <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
+        <p className="text-sm text-slate-500 animate-pulse">Syncing discussion...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[600px] border border-border/60 rounded-xl bg-background/50 backdrop-blur-sm shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-gradient-to-br from-muted/40 to-transparent mt-8 rounded-xl border border-white/5 rounded-xl overflow-hidden shadow-sm">
       
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-muted/20">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">
+      {/* 1. Header */}
+      <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-card backdrop-blur">
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-teal-500/10 rounded-md">
+             <MessageSquare className="w-4 h-4 text-teal-500" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-200">
             Discussion Thread
-            <span className="ml-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
+            <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/5 text-slate-400 text-[10px] border border-white/5">
               {comments.length}
             </span>
           </h3>
         </div>
         
-        {/* Connection Status Indicator */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-               <div className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium transition-colors border",
-                  isConnected 
-                    ? "bg-teald-500/10 text-teald-600 border-teald-500/20" 
-                    : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                )}>
-                  {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                  <span>{isConnected ? 'Live' : 'Connecting'}</span>
-               </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Real-time collaboration is {isConnected ? 'active' : 'inactive'}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-2">
+            <div className={cn(
+                "flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-medium border transition-all",
+                isConnected 
+                ? "bg-teal-500/10 text-teal-400 border-teal-500/20" 
+                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            )}>
+                <div className={cn("w-1.5 h-1.5 rounded-full", isConnected ? "bg-teal-500 animate-pulse" : "bg-amber-500")} />
+                <span className="uppercase tracking-wider">{isConnected ? 'Live' : 'Connecting'}</span>
+            </div>
+        </div>
       </div>
 
-      {/* Comments List Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-muted-foreground/20">
-        {comments.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
-            <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
-              <MessageCircle className="w-6 h-6 text-muted-foreground" />
+      {/* 2. Thread List */}
+      <ScrollArea className="flex-1 bg-[#0f1116]/30">
+        <div className="p-6 space-y-6">
+          {comments.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-[#151921] border border-white/5 rounded-full flex items-center justify-center mb-4">
+                <MessageCircle className="w-8 h-8 text-slate-600" />
+              </div>
+              <p className="text-sm font-medium text-slate-300">No discussions yet</p>
+              <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
+                Start a conversation about the methodology or results.
+              </p>
             </div>
-            <p className="text-sm font-medium text-foreground">No discussions yet</p>
-            <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
-              Start a conversation about the methodology or results.
-            </p>
-          </div>
-        ) : (
-          comments.map((comment, index) => {
-             const isMe = user?.id === comment.author?.id; // Assuming user object has id
-             return (
-              <div 
-                key={comment.id} 
-                className={cn(
-                  "flex gap-3 max-w-[85%]", 
-                  isMe ? "ml-auto flex-row-reverse" : ""
-                )}
-              >
-                <Avatar className="w-8 h-8 border border-border/50 shadow-sm mt-1">
-                  <AvatarImage src="https://static.vecteezy.com/system/resources/thumbnails/015/407/577/small/doctor-round-avatar-medicine-flat-avatar-with-male-doctor-medical-clinic-team-round-icon-medical-collection-illustration-vector.jpg" />
-                  <AvatarFallback className={cn("text-[10px]", isMe ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                    {comment.author ? getInitials(comment.author.name) : 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className={cn(
-                  "group flex flex-col space-y-1", 
-                  isMe ? "items-end" : "items-start"
-                )}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-foreground/80">
-                      {comment.author?.name || 'Unknown'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {formatDateTime(comment.createdAt)}
-                    </span>
-                  </div>
-                  
-                  <div className={cn(
-                    "px-4 py-2.5 rounded-2xl text-sm shadow-sm leading-relaxed",
-                    isMe 
-                      ? "bg-primary text-primary-foreground rounded-tr-none" 
-                      : "bg-white dark:bg-slate-800 border border-border/50 rounded-tl-none"
-                  )}>
-                    {comment.content}
+          ) : (
+            comments.map((comment) => {
+              const isMe = user?.id === comment.author?.id;
+              
+              return (
+                <div key={comment.id} className="group flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Avatar Column */}
+                  <Avatar className="w-8 h-8 border border-white/10 mt-1">
+                    <AvatarFallback className={cn("text-[10px] font-bold", isMe ? "bg-teal-500/20 text-teal-500" : "bg-[#262626] text-slate-400")}>
+                      {comment.author ? getInitials(comment.author.name) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {/* Content Column */}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-slate-200">
+                                {comment.author?.name || 'Unknown'}
+                            </span>
+                            {/* Mock Role Badge */}
+                            {isMe && <Badge variant="outline" className="text-[9px] h-4 px-1 py-0 border-teal-500/30 text-teal-500 bg-teal-500/5">You</Badge>}
+                            <span className="text-[10px] text-slate-500">
+                                {formatDateTime(comment.createdAt)}
+                            </span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-slate-500 hover:text-white">
+                            <Reply className="w-3 h-3" />
+                        </Button>
+                    </div>
+                    
+                    <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {comment.content}
+                    </div>
                   </div>
                 </div>
-              </div>
-             )
-          })
-        )}
-        <div ref={scrollRef} />
-      </div>
+              );
+            })
+          )}
+          <div ref={scrollRef} />
+        </div>
+      </ScrollArea>
 
-      {/* Input Area */}
-      <div className="p-4 bg-background border-t border-border/50">
+      {/* 3. Input Area */}
+      <div className="p-4 bg-card backdrop-blur border-t border-white/5">
         <form 
           onSubmit={handleSubmit} 
-          className="relative flex items-end gap-2 p-2 rounded-xl border border-border/60 bg-muted/20 focus-within:bg-background focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all duration-200"
+          className="relative group bg-card border border-white/10 rounded-xl focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all duration-200"
         >
           <Textarea
             placeholder="Type your comment here..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
+            onKeyDown={handleKeyDown}
             rows={1}
-            className="min-h-[40px] max-h-[120px] w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 px-3 py-2.5 text-sm"
+            className="min-h-[48px] max-h-[120px] w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 px-4 py-3 text-sm text-slate-200 placeholder:text-slate-600"
             style={{ height: 'auto' }}
-            // Auto-resize logic would typically go here
           />
           
-          <Button 
-            type="submit" 
-            size="icon"
-            disabled={isSending || !newComment.trim()} 
-            className={cn(
-              "h-8 w-8 mb-1 transition-all rounded-lg", 
-              newComment.trim() ? "opacity-100 scale-100" : "opacity-50 scale-90"
-            )}
-          >
-            {isSending ? (
-               <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-               <Send className="w-4 h-4" />
-            )}
-            <span className="sr-only">Send</span>
-          </Button>
+          <div className="absolute right-2 bottom-2">
+              <Button 
+                type="submit" 
+                size="icon"
+                disabled={isSending || !newComment.trim()} 
+                className={cn(
+                  "h-8 w-8 rounded-lg transition-all duration-200", 
+                  newComment.trim() 
+                    ? "bg-teal-600 hover:bg-teal-700 text-white" 
+                    : "bg-white/5 text-slate-600 hover:bg-white/10"
+                )}
+              >
+                {isSending ? (
+                   <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                   <Send className="w-4 h-4" />
+                )}
+              </Button>
+          </div>
         </form>
-        <p className="text-[10px] text-muted-foreground text-center mt-2 opacity-60">
-          <strong>Shift + Enter</strong> for new line
-        </p>
+        <div className="flex justify-between items-center mt-2 px-1">
+            <p className="text-[10px] text-slate-500">
+                <span className="font-mono text-xs border border-white/10 rounded px-1 py-0.5 bg-white/5 mr-1">Shift + Enter</span> 
+                for new line
+            </p>
+        </div>
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { formatDate, cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import MarkdownRenderer from '@/components/Insights/MarkdownRenderer';
 
 export default function ExperimentDetailPage() {
   const params = useParams();
@@ -206,7 +207,7 @@ export default function ExperimentDetailPage() {
               {isEditing ? (
                  <div className="flex gap-2">
                     <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-white">Cancel</Button>
-                    <Button size="sm" onClick={handleSave} className="bg-teald-600 hover:bg-teald-700 text-white">
+                    <Button size="sm" onClick={handleSave} className="bg-teal-600 hover:bg-teal-700 text-black">
                         {isSaving ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Save className="w-3 h-3 mr-2" />} Save
                     </Button>
                  </div>
@@ -405,33 +406,12 @@ function ResearchReportRenderer({ suggestions, isGenerating, onGenerate }: any) 
                 </div>
             </CardHeader>
 
-            <CardContent className="p-0">
+            <CardContent className="p-4">
                 {suggestions.length > 0 ? (
                     <div className="divide-y divide-white/5">
-                        {suggestions.map((item: string, idx: number) => {
-                            const parts = item.split(':');
-                            const hasTitle = parts.length > 1;
-                            const title = hasTitle ? parts[0].trim() : `Insight ${idx + 1}`;
-                            const content = hasTitle ? parts.slice(1).join(':').trim() : item;
-
-                            return (
-                                <div key={idx} className="p-4 hover:bg-white/[0.02] transition-colors flex gap-4 group animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: `${idx * 100}ms` }}>
-                                    <div className="mt-1 shrink-0">
-                                        <div className="w-6 h-6 rounded-md bg-[#171717] border border-white/10 flex items-center justify-center">
-                                            {getIconForSuggestion(item)}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1 flex-1 min-w-0">
-                                        <h5 className="text-sm font-medium text-slate-200">
-                                            {title}
-                                        </h5>
-                                        <p className="text-sm text-slate-400 leading-relaxed">
-                                            {content}
-                                        </p>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                        {suggestions.map((item: string, idx: number) => (
+                            <MarkdownRenderer key={idx} content={item} />
+                        ))}
                     </div>
                 ) : (
                     <div className="p-12 text-center text-slate-500 flex flex-col items-center justify-center gap-4">

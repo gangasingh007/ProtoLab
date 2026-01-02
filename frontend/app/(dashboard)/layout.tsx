@@ -11,8 +11,8 @@ export default function DashboardLayout({
     // 1. Flex container for the whole screen
     <div className="flex h-screen overflow-hidden bg-slate-950"> 
       
-      {/* 2. Sidebar wrapper - Fixed width, no scrolling */}
-      <aside className="w-[280px] flex-none hidden md:block border-r border-slate-800">
+      {/* 2. Sidebar wrapper - allow Sidebar to control width (supports collapsed state) */}
+      <aside className="flex-none hidden md:block ">
         <Sidebar />
       </aside>
 

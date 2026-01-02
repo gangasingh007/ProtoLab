@@ -89,7 +89,7 @@ export default function TeamDetailPage() {
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="flex items-start gap-6">
                         {/* Team Icon */}
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teald-500/20 to-teal-500/10 border border-teald-500/20 flex items-center justify-center text-teald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500/20 to-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                             <span className="text-2xl font-bold">{team.name.slice(0, 2).toUpperCase()}</span>
                         </div>
                         
@@ -151,9 +151,6 @@ export default function TeamDetailPage() {
                                                 className="pl-9 bg-[#151921] border-white/10 text-slate-200 placeholder:text-slate-600 focus-visible:ring-teald-500/50"
                                             />
                                         </div>
-                                        <Button variant="outline" className="border-white/10 bg-[#151921] text-slate-400 hover:text-white">
-                                            <Filter className="w-4 h-4 mr-2" /> Filter
-                                        </Button>
                                      </div>
 
                                      {filteredExperiments.length === 0 ? (
@@ -225,7 +222,7 @@ function TabItem({ value, icon: Icon, label, count }: any) {
 function ExperimentCard({ experiment, router }: { experiment: Experiment, router: any }) {
     return (
         <Card 
-            className="group cursor-pointer bg-black/20 border-white/5 hover:border-teald-500/30 hover:shadow-lg hover:shadow-teald-500/5 transition-all duration-300 relative overflow-hidden"
+            className="group cursor-pointer bg-gradient-to-br from-muted/30 to-transparent border border-white/10 hover:border-teal-500/30 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300 relative overflow-hidden"
             onClick={() => router.push(`/experiments/${experiment.id}`)}
         >
             {/* Hover Gradient Effect */}
@@ -272,10 +269,10 @@ function ExperimentCard({ experiment, router }: { experiment: Experiment, router
 
 function MemberCard({ member }: { member: any }) {
     return (
-        <div className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-card/20 hover transition-colors group">
+        <div className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-background/50 hover transition-colors group">
              <Avatar className="h-10 w-10 border border-white/10">
                 <AvatarImage src={member.user.avatarUrl} />
-                <AvatarFallback className="bg-teald-500/10 text-teald-500 font-bold text-xs">
+                <AvatarFallback className="bg-teal-500/60 text-white font-bold text-xs">
                 {member.user.name?.charAt(0)}
                 </AvatarFallback>
             </Avatar>
