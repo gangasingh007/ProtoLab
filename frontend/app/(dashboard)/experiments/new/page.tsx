@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { experimentsAPI } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Sidebar } from '@/components/dashboard/SideBar';
 import { 
   ArrowLeft, 
   Loader2, 
@@ -18,11 +19,12 @@ import {
   ScrollText, 
   Tags,
   Save,
-  Microscope
+  ChevronRight,
+  Info
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import toast from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 
 export default function NewExperimentPage() {
   const router = useRouter();
@@ -78,215 +80,194 @@ export default function NewExperimentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 flex flex-col">
-      
-      {/* 1. Top Navigation Bar */}
-      <div className="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-             <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-               <Microscope className="w-4 h-4" />
-               <span>New Experiment</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground hidden sm:inline-block mr-2">
-              Changes are not saved
-            </span>
-            <Button 
-                onClick={handleSubmit} 
-                disabled={isCreating} 
-                className="shadow-lg shadow-primary/20"
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Initializing...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Initialize Experiment
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Main Layout */}
-      <div className="flex-1 container max-w-5xl mx-auto px-4 py-8">
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* LEFT COLUMN: Main Scientific Content (2/3 width) */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* Title Section */}
-            <div className="space-y-4">
-              <Label htmlFor="title" className="text-muted-foreground uppercase text-xs tracking-wider font-semibold">
-                Experiment Title
-              </Label>
-              <Input
-                id="title"
-                placeholder="E.g. Analysis of protein folding structures..."
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-                className="text-2xl font-bold h-auto py-3 px-0 border-0 border-b rounded-none border-border/50 focus-visible:ring-0 focus-visible:border-primary bg-transparent placeholder:text-muted-foreground/40"
-              />
-            </div>
-
-            {/* Hypothesis Card */}
-            <Card className="border-border/60 shadow-sm bg-card/50">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-500/10 rounded-lg">
-                        <Sparkles className="w-4 h-4 text-blue-500" />
+    <div className="flex h-screen bg-[#171717]/90 text-slate-200 font-sans selection:bg-teal-500/30">
+      {/* 2. Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#171717]/90">
+        
+        {/* Header */}
+        <header className="h-16 py-3 border-b border-white/5 flex items-center justify-between px-8 bg-[#171717]/80 backdrop-blur-md sticky top-0 z-20">
+             <div className="flex items-center gap-4">
+                 <Button size="icon" variant="ghost" onClick={() => router.back()} className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/5">
+                    <ArrowLeft className="w-4 h-4" />
+                 </Button>
+                 <div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
+                       <span onClick={()=>router.push("/")} className="cursor-pointer hover:text-slate-300">Workspace</span> 
+                       <ChevronRight className="w-3 h-3" />
+                       <span className="text-teal-500">New Protocol</span>
                     </div>
-                    <CardTitle className="text-base">Hypothesis</CardTitle>
-                </div>
-                <CardDescription>
-                  What is the core question or prediction driving this research?
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  id="hypothesis"
-                  placeholder="We hypothesize that..."
-                  value={formData.hypothesis}
-                  onChange={(e) => setFormData({ ...formData, hypothesis: e.target.value })}
-                  rows={4}
-                  className="resize-none bg-muted/30 focus:bg-background transition-colors border-border/50"
-                />
-              </CardContent>
-            </Card>
-
-            {/* Methodology Card */}
-            <Card className="border-border/60 shadow-sm bg-card/50">
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                    <div className="p-2 bg-teald-500/10 rounded-lg">
-                        <ScrollText className="w-4 h-4 text-teald-500" />
-                    </div>
-                    <CardTitle className="text-base">Methodology</CardTitle>
-                </div>
-                <CardDescription>
-                   Outline the procedures, materials, and protocols to be used.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  id="method"
-                  placeholder="1. Sample preparation..."
-                  value={formData.method}
-                  onChange={(e) => setFormData({ ...formData, method: e.target.value })}
-                  rows={8}
-                  className="resize-none bg-muted/30 focus:bg-background transition-colors border-border/50 font-mono text-sm"
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* RIGHT COLUMN: Metadata & Settings (1/3 width) */}
-          <div className="space-y-6">
-            
-            {/* Context Card */}
-             <Card className="border-border/60 shadow-sm">
-                <CardHeader>
-                    <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Context</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
-                        <div className="flex items-center gap-2 mb-1">
-                             <FlaskConical className="w-4 h-4 text-primary" />
-                             <span className="text-sm font-medium text-primary">New Entry</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            This experiment will be initialized with a status of <strong>Planning</strong>.
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Tags Card */}
-            <Card className="border-border/60 shadow-sm overflow-hidden">
-               <CardHeader className="bg-muted/30 pb-4 border-b border-border/50">
-                 <div className="flex items-center gap-2">
-                    <Tags className="w-4 h-4 text-muted-foreground" />
-                    <CardTitle className="text-base">Tags & Categories</CardTitle>
+                    <h2 className="text-base font-medium text-white tracking-tight">Initialize Experiment</h2>
                  </div>
-               </CardHeader>
-               <CardContent className="pt-6 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tags" className="text-xs">Add Keywords</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="tags"
-                        placeholder="e.g. Genomics"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddTag();
-                          }
-                        }}
-                        className="bg-background"
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={handleAddTag}
-                        size="icon"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
+             </div>
+             
+             <div className="flex items-center gap-3">
+                <Button variant="ghost" size="sm" onClick={() => router.back()} className="text-slate-400 hover:text-white hover:bg-white/5 text-xs">
+                    Cancel
+                </Button>
+                <Button 
+                    onClick={handleSubmit} 
+                    disabled={isCreating} 
+                    className="bg-teal-600 hover:bg-teal-700 text-black shadow-lg shadow-teal-500/20 text-xs h-8 border border-teal-500/50"
+                >
+                    {isCreating ? (
+                        <>
+                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                            Creating...
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-3 h-3 mr-2" />
+                            Create Protocol
+                        </>
+                    )}
+                </Button>
+             </div>
+        </header>
+
+        {/* Content Body */}
+        <div className="p-8 max-w-6xl mx-auto w-full pb-20">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* LEFT COLUMN: Main Form (8 Cols) */}
+                <div className="lg:col-span-8 space-y-8">
+                    
+                    {/* Title Input */}
+                    <div className="space-y-2">
+                        <Label htmlFor="title" className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Protocol Title</Label>
+                        <Input
+                            id="title"
+                            placeholder="E.g. Analysis of protein folding structures under high heat..."
+                            value={formData.title}
+                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            required
+                            className="text-2xl font-bold h-auto py-4 px-2 bg-transparent border-0 border-b border-white/10 rounded bg-transparent placeholder:text-white/20 focus-visible:ring-0 focus-visible:border-teal-500/50 text-white transition-all"
+                        />
                     </div>
-                  </div>
 
-                  <div className="min-h-[100px] p-3 rounded-lg bg-muted/20 border border-border/50">
-                     {formData.tags.length === 0 ? (
-                         <p className="text-xs text-muted-foreground text-center py-8 opacity-60">
-                             No tags added yet.
-                         </p>
-                     ) : (
-                         <div className="flex flex-wrap gap-2">
-                            {formData.tags.map((tag) => (
-                                <Badge 
-                                    key={tag} 
-                                    variant="secondary" 
-                                    className="pl-2.5 pr-1.5 py-1 bg-background hover:bg-background border-border/60"
+                    {/* Hypothesis Card */}
+                    <Card className="bg-card border-white/5">
+                        <CardHeader className="pb-3 border-b border-white/5 ">
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5  rounded-md">
+                                    <Sparkles className="w-4 h-4 text-amber-500" />
+                                </div>
+                                <CardTitle className="text-sm font-semibold text-slate-200">Hypothesis</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            <Textarea
+                                id="hypothesis"
+                                placeholder="State the scientific question or expected outcome..."
+                                value={formData.hypothesis}
+                                onChange={(e) => setFormData({ ...formData, hypothesis: e.target.value })}
+                                rows={4}
+                                className="bg-[#0B0E14] border-white/10 text-slate-300 resize-none focus-visible:ring-amber-500/30 min-h-[120px]"
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Methodology Card */}
+                    <Card className="bg-card border-white/5">
+                        <CardHeader className="pb-3 border-b border-white/5 ">
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 bg-blue-500/10 rounded-md">
+                                    <ScrollText className="w-4 h-4 text-blue-500" />
+                                </div>
+                                <CardTitle className="text-sm font-semibold text-slate-200">Methodology</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            <Textarea
+                                id="method"
+                                placeholder="1. Step one..."
+                                value={formData.method}
+                                onChange={(e) => setFormData({ ...formData, method: e.target.value })}
+                                rows={8}
+                                className="bg-[#0B0E14] border-white/10 text-slate-300 resize-none focus-visible:ring-blue-500/30 min-h-[200px] font-mono text-sm leading-relaxed"
+                            />
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+                {/* RIGHT COLUMN: Sidebar (4 Cols) */}
+                <div className="lg:col-span-4 space-y-6">
+                    
+                    {/* Context Info */}
+                    <div className=" rounded-xl border border-white/5 p-4">
+                        <div className="flex items-start gap-3">
+                            <Info className="w-5 h-5 text-teal-500 mt-0.5" />
+                            <div>
+                                <h4 className="text-sm font-medium text-slate-200">New Protocol Entry</h4>
+                                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                    This experiment will be initialized in the <strong>Planning</strong> phase. You can add collaborators and link datasets after creation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tags Card */}
+                    <Card className="bg-card border-white/5">
+                        <CardHeader className="pb-3 border-b border-white/5">
+                            <div className="flex items-center gap-2">
+                                <Tags className="w-4 h-4 text-slate-500" />
+                                <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-widest">Tags & Keywords</CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-4">
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="Add a tag..."
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddTag();
+                                        }
+                                    }}
+                                    className="h-9 bg-[#0B0E14] border-white/10 text-slate-300 focus-visible:ring-teal-500/30 text-xs"
+                                />
+                                <Button
+                                    type="button"
+                                    onClick={handleAddTag}
+                                    size="sm"
+                                    className="h-9 w-9 p-0 bg-white/5 hover:bg-white/10 border border-white/10"
                                 >
-                                    {tag}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveTag(tag)}
-                                        className="ml-1.5 p-0.5 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-                                    >{}
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </Badge>
-                            ))}
-                         </div>
-                     )}
-                  </div>
-               </CardContent>
-            </Card>
+                                    <Plus className="w-4 h-4 text-slate-400" />
+                                </Button>
+                            </div>
 
-          </div>
-        </form>
-      </div>
+                            <div className="min-h-[100px] p-3 rounded-lg bg-black/20 border border-white/5 flex flex-wrap content-start gap-2">
+                                {formData.tags.length === 0 ? (
+                                    <p className="text-xs text-white/50  w-full text-center py-8">No tags added yet.</p>
+                                ) : (
+                                    formData.tags.map((tag) => (
+                                        <Badge 
+                                            key={tag} 
+                                            variant="secondary" 
+                                            className="bg-[#151921] text-slate-300 border border-white/10 hover:bg-[#1A1D24] pl-2 pr-1 h-6 text-[10px]"
+                                        >
+                                            {tag}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveTag(tag)}
+                                                className="ml-1 p-0.5 rounded-full hover:bg-white/10 hover:text-white transition-colors"
+                                            >{}
+                                                <X className="w-2.5 h-2.5" />
+                                            </button>
+                                        </Badge>
+                                    ))
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+
+            </form>
+        </div>
+      </main>
     </div>
   );
 }

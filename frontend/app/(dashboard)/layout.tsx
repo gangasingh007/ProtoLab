@@ -17,7 +17,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* 3. Main Content Area - Grow to fill space, scrollable */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-950">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden ">
         <div className="h-full w-full">
           {children}
         </div>

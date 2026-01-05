@@ -45,9 +45,9 @@ export default function PapersPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedTeam) {
+
       loadPapers(selectedTeam);
-    }
+   
   }, [selectedTeam]);
 
   const loadTeams = async () => {
@@ -65,9 +65,10 @@ export default function PapersPage() {
   const loadPapers = async (teamId: string) => {
     setIsLoading(true);
     try {
-        // @ts-ignore
-      const data = await teamsAPI.getTeamPapers(teamId);
+      // @ts-ignore
+      const data = await papersAPI.getPapersByTeam(teamId);
       setPapers(data);
+      console.log(data)
     } catch (error: any) {
        // Silent fail for init
     } finally {
@@ -176,7 +177,7 @@ export default function PapersPage() {
                                     placeholder="Paper title" 
                                     value={newPaper.title} 
                                     onChange={(e) => setNewPaper({ ...newPaper, title: e.target.value })} 
-                                    className="bg-[#000000] border-white/10 text-slate-200"
+                                    className="bg-card border-white/10 text-slate-200"
                                     required 
                                 />
                              </div>

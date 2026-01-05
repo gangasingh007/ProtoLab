@@ -17,7 +17,7 @@ export default function Home() {
     if (isAuthenticated) {
       router.push('/teams');
     } else {
-      router.push('/login');
+      router.push('/landing');
     }
   }, [isAuthenticated, router]);
 

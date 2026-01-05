@@ -303,15 +303,21 @@ function GraphContent() {
                   <Separator />
 
                   <div className="space-y-4">
-                      <h3 className="font-semibold text-sm uppercase text-muted-foreground tracking-wider">Actions</h3>
-                      <div className="grid grid-cols-2 gap-3">
-                          <Button className="w-full" onClick={() => router.push(`/${selectedNode.data.type}s/${selectedNode.id}`)}>
-                              View Full Details
-                          </Button>
-                          <Button variant="outline" className="text-white w-full">
-                              Edit Node
-                          </Button>
-                      </div>
+                    <h3 className="font-semibold text-sm uppercase text-muted-foreground tracking-wider">Actions</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          const cleanId = selectedNode.id.replace(/^(exp-|paper-)/, '');
+                          router.push(`/${selectedNode.data.type}s/${cleanId}`);
+                        }}
+                      >
+                        View Full Details
+                      </Button>
+                      <Button variant="outline" className="text-white w-full">
+                        Edit Node
+                      </Button>
+                    </div>
                   </div>
 
                   <Card className="bg-muted/30">

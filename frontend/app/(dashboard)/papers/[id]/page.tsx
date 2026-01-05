@@ -9,21 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Sidebar } from '@/components/dashboard/SideBar';
 import { 
-  ArrowLeft, 
-  ExternalLink, 
-  FileText, 
-  Loader2, 
-  Sparkles, 
-  Download, 
-  BookOpen, 
-  Calendar, 
-  Users, 
-  Quote, 
-  Microscope,
-  AlertTriangle,
-  Lightbulb,
-  Link as LinkIcon
+  ArrowLeft, ExternalLink, FileText, Loader2, Sparkles, 
+  Download, BookOpen, Calendar, Users, Quote, Microscope,
+  AlertTriangle, Lightbulb, Link as LinkIcon, ChevronRight
 } from 'lucide-react';
 import { formatDate, cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -69,113 +59,123 @@ export default function PaperDetailPage() {
 
   if (!paper) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-        <div className="text-center space-y-4">
-            <div className="bg-muted p-4 rounded-full inline-flex">
-                <FileText className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-bold">Paper not found</h2>
-            <Button onClick={() => router.push('/papers')}>Return to Library</Button>
-        </div>
+      <div className="h-screen bg-[#171717] flex flex-col items-center justify-center text-white">
+        <FileText className="w-12 h-12 text-slate-600 mb-4" />
+        <h2 className="text-xl font-bold mb-2">Paper not found</h2>
+        <Button variant="outline" onClick={() => router.push('/papers')}>Return to Library</Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50/50 dark:bg-slate-950/50">
-      
-      {/* 1. Header with Breadcrumb */}
-      <header className="sticky top-0 z-30 w-full border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
-           <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => router.push('/papers')}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Library
-              </Button>
-              <Separator orientation="vertical" className="h-6" />
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <BookOpen className="w-4 h-4" />
-                <span className="truncate max-w-[200px] font-medium text-foreground">{paper.title}</span>
-              </div>
-           </div>
-           
-           <div className="text-xs text-muted-foreground hidden sm:block">
-              Added {formatDate(paper.createdAt)} by {paper.uploadedBy?.name}
-           </div>
-        </div>
-      </header>
+    <div className="flex h-screen bg-[#171717]/90 text-slate-200 font-sans selection:bg-teal-500/30">
+      {/* 2. Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#171717]/90">
+        
+        {/* Header */}
+        <header className="h-16 border-b border-white/5 flex py-3 items-center justify-between px-8 bg-[#171717]/80 backdrop-blur-md sticky top-0 z-20">
+             <div className="flex items-center gap-4">
+                 <Button size="icon" variant="ghost" onClick={() => router.push('/papers')} className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/5">
+                    <ArrowLeft className="w-4 h-4" />
+                 </Button>
+                 <div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
+                       <span className="cursor-pointer hover:text-slate-300">Library</span> 
+                       <ChevronRight className="w-3 h-3" />
+                       <span className="text-teal-500">Analysis</span>
+                    </div>
+                    <h2 className="text-base font-medium text-white tracking-tight truncate max-w-md">{paper.title}</h2>
+                 </div>
+             </div>
+             
+             <div className="flex items-center gap-3">
+                {paper.url && (
+                    <Button variant="outline" size="sm" asChild className="h-8 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs gap-2">
+                        <a href={paper.url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-3 h-3" /> View Source
+                        </a>
+                    </Button>
+                )}
+                {paper.pdfUrl && (
+                    <Button size="sm" className="h-8 bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-500/20 text-xs gap-2">
+                        <a href={paper.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+                            <Download className="w-3 h-3" /> Download PDF
+                        </a>
+                    </Button>
+                )}
+             </div>
+        </header>
 
-      {/* 2. Main Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4 sm:px-8 py-8">
+        <div className="p-8 max-w-7xl mx-auto w-full pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                {/* LEFT COLUMN: Content Analysis (8 Cols) */}
+                {/* LEFT COLUMN: Content (8 Cols) */}
                 <div className="lg:col-span-8 space-y-8">
                     
-                    {/* Title Section */}
+                    {/* Title Block */}
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
+                        <h1 className="text-3xl font-bold text-white leading-tight mb-4">
                             {paper.title}
                         </h1>
-                        <div className="flex items-center gap-3 mt-4 text-slate-600 dark:text-slate-400">
-                            <Users className="w-5 h-5" />
-                            <span className="text-lg">{paper.authors || "Unknown Authors"}</span>
+                        <div className="flex flex-wrap items-center gap-6 text-slate-400 text-sm">
+                            <div className="flex items-center gap-2">
+                                <Users className="w-4 h-4 text-teal-500" />
+                                <span className="text-slate-300 font-medium">{paper.authors || "Unknown Authors"}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-slate-500" />
+                                <span>{formatDate(paper.createdAt)}</span>
+                            </div>
+                            <Badge variant="outline" className="border-white/10 text-slate-500 font-mono text-[10px] bg-[#151921]">
+                                PAPER ID: {paper.id.substring(0,8).toUpperCase()}
+                            </Badge>
                         </div>
                     </div>
 
                     {/* AI Summary Card */}
-                    <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl opacity-20 blur transition duration-1000 group-hover:opacity-40"></div>
-                        <Card className="relative border-indigo-100 dark:border-indigo-900 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
-                            <CardHeader className="pb-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
-                                        <Sparkles className="w-5 h-5" />
-                                        <CardTitle className="text-lg">AI Analysis</CardTitle>
-                                    </div>
-                                    {!paper.summary && (
-                                        <Button 
-                                            size="sm" 
-                                            onClick={handleSummarize} 
-                                            disabled={isSummarizing}
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                        >
-                                            {isSummarizing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate Summary"}
-                                        </Button>
-                                    )}
+                    <div className="relative group rounded-xl p-[1px] bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 shadow-lg shadow-indigo-500/10">
+                        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-500" />
+                        <Card className="relative bg-[#0B0E14] border-0 h-full">
+                            <CardHeader className="pb-4 border-b border-white/5 flex flex-row items-center justify-between space-y-0">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-indigo-400" />
+                                    <CardTitle className="text-base text-white">AI Executive Summary</CardTitle>
                                 </div>
+                                {!paper.summary && (
+                                    <Button 
+                                        size="sm" 
+                                        variant="outline"
+                                        onClick={handleSummarize} 
+                                        disabled={isSummarizing}
+                                        className="h-7 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/10 text-xs"
+                                    >
+                                        {isSummarizing ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2" />}
+                                        Generate
+                                    </Button>
+                                )}
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-6">
                                 {paper.summary ? (
-                                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                                        <p className="leading-relaxed text-slate-700 dark:text-slate-300">
-                                            {paper.summary}
-                                        </p>
-                                    </div>
+                                    <p className="leading-relaxed text-slate-300 text-sm">{paper.summary}</p>
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                                        <Sparkles className="w-8 h-8 mb-2 opacity-20" />
-                                        <p className="text-sm">No analysis generated yet.</p>
+                                    <div className="flex flex-col items-center justify-center py-8 text-center text-slate-500">
+                                        <Sparkles className="w-8 h-8 mb-3 opacity-20" />
+                                        <p className="text-sm">Click generate to analyze this paper using AI.</p>
                                     </div>
                                 )}
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Findings & Methodology Grid */}
-                    <div className="grid gap-6">
+                    {/* Key Sections Grid */}
+                    <div className="space-y-6">
                         <SectionBlock 
                             title="Key Findings" 
                             icon={Lightbulb} 
                             content={paper.findings} 
-                            placeholder="Key findings extracted from the paper will appear here."
-                            colorClass="text-amber-500"
+                            placeholder="Extract key findings to populate this section."
+                            colorClass="text-amber-400"
+                            bgClass="bg-amber-500/10"
                         />
                         
                         <SectionBlock 
@@ -183,7 +183,8 @@ export default function PaperDetailPage() {
                             icon={Microscope} 
                             content={paper.methodology} 
                             placeholder="Methodology details will appear here."
-                            colorClass="text-blue-500"
+                            colorClass="text-blue-400"
+                            bgClass="bg-blue-500/10"
                         />
                         
                         <SectionBlock 
@@ -191,155 +192,55 @@ export default function PaperDetailPage() {
                             icon={AlertTriangle} 
                             content={paper.limitations} 
                             placeholder="Noted limitations will appear here."
-                            colorClass="text-red-500"
+                            colorClass="text-rose-400"
+                            bgClass="bg-rose-500/10"
                         />
                     </div>
                 </div>
-
-                {/* RIGHT COLUMN: Sidebar (4 Cols) */}
-                <div className="lg:col-span-4 space-y-6">
-                    
-                    {/* Quick Actions */}
-                    <Card className="shadow-sm">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Source</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {paper.pdfUrl ? (
-                                <Button className="w-full gap-2" size="lg" asChild>
-                                    <a href={paper.pdfUrl} target="_blank" rel="noopener noreferrer">
-                                        <Download className="w-4 h-4" />
-                                        Download PDF
-                                    </a>
-                                </Button>
-                            ) : (
-                                <Button className="w-full gap-2" variant="secondary" disabled>
-                                    <Download className="w-4 h-4" />
-                                    No PDF Available
-                                </Button>
-                            )}
-
-                            {paper.url && (
-                                <Button variant="outline" className="w-full gap-2" asChild>
-                                    <a href={paper.url} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="w-4 h-4" />
-                                        View Source
-                                    </a>
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Linked Experiments */}
-                    <Card className="shadow-sm">
-                        <CardHeader className="pb-3">
-                             <div className="flex items-center justify-between">
-                                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Linked Experiments</CardTitle>
-                                <Badge variant="secondary" className="text-xs">{paper.experiments?.length || 0}</Badge>
-                             </div>
-                        </CardHeader>
-                        <CardContent>
-                             {paper.experiments && paper.experiments.length > 0 ? (
-                                <div className="space-y-2">
-                                    {paper.experiments.map((exp: any) => (
-                                        <div 
-                                            key={exp.id}
-                                            onClick={() => router.push(`/experiments/${exp.experiment?.id}`)}
-                                            className="group flex items-center justify-between p-3 rounded-lg border border-transparent hover:border-border hover:bg-muted/50 transition-all cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-3 overflow-hidden">
-                                                <div className="w-8 h-8 rounded-md bg-blue-500/10 flex items-center justify-center text-blue-600">
-                                                    <Microscope className="w-4 h-4" />
-                                                </div>
-                                                <div className="truncate">
-                                                    <p className="text-sm font-medium group-hover:text-primary transition-colors truncate">
-                                                        {exp.experiment?.title}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground capitalize">
-                                                        {exp.experiment?.status?.toLowerCase().replace('_', ' ')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <ArrowLeft className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 rotate-180 transition-all" />
-                                        </div>
-                                    ))}
-                                </div>
-                             ) : (
-                                <div className="text-center py-6">
-                                    <LinkIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                                    <p className="text-sm text-muted-foreground">No experiments linked.</p>
-                                </div>
-                             )}
-                        </CardContent>
-                    </Card>
-
-                     {/* Metadata Card */}
-                     <Card className="bg-muted/20 border-none shadow-none">
-                        <CardContent className="pt-6 space-y-4 text-sm">
-                            <div className="flex justify-between py-2 border-b border-border/50">
-                                <span className="text-muted-foreground">Added</span>
-                                <span className="font-medium">{formatDate(paper.createdAt)}</span>
-                            </div>
-                            <div className="flex justify-between py-2 border-b border-border/50">
-                                <span className="text-muted-foreground">Updated</span>
-                                <span className="font-medium">{formatDate(paper.updatedAt)}</span>
-                            </div>
-                             <div className="flex justify-between py-2">
-                                <span className="text-muted-foreground">ID</span>
-                                <span className="font-mono text-xs text-muted-foreground">{paper.id.substring(0,8)}...</span>
-                            </div>
-                        </CardContent>
-                     </Card>
-
-                </div>
             </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
 
 // --- Helper Components ---
 
-function SectionBlock({ title, icon: Icon, content, placeholder, colorClass }: any) {
+function SectionBlock({ title, icon: Icon, content, placeholder, colorClass, bgClass }: any) {
     return (
-        <div className="group">
-            <div className="flex items-center gap-2 mb-3">
-                <Icon className={cn("w-5 h-5", colorClass)} />
-                <h3 className="text-lg font-semibold">{title}</h3>
-            </div>
-            <Card className="border-border/60 hover:border-border transition-colors">
-                <CardContent className="pt-6">
-                    {content ? (
-                         <p className="leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
-                            {content}
-                        </p>
-                    ) : (
-                        <p className="text-muted-foreground italic text-sm">{placeholder}</p>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+        <Card className="bg-gradient-to-r from-card/90 via-card/70 to-transparent border-white/5 overflow-hidden">
+            <CardHeader className="pb-3 border-b border-white/5">
+                <div className="flex items-center gap-2">
+                    <div className={cn("p-1.5 rounded-md", bgClass)}>
+                        <Icon className={cn("w-4 h-4", colorClass)} />
+                    </div>
+                    <CardTitle className="text-sm font-semibold text-slate-200">{title}</CardTitle>
+                </div>
+            </CardHeader>
+            <CardContent className="pt-5">
+                {content ? (
+                    <p className="leading-relaxed text-slate-400 text-sm whitespace-pre-wrap">
+                        {content}
+                    </p>
+                ) : (
+                    <p className="text-slate-600 italic text-sm">{placeholder}</p>
+                )}
+            </CardContent>
+        </Card>
     )
 }
 
 function PaperSkeleton() {
     return (
-        <div className="container mx-auto px-4 py-8 space-y-8">
-            <div className="space-y-4">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-12 w-3/4" />
-                <Skeleton className="h-6 w-1/2" />
-            </div>
-            <div className="grid grid-cols-12 gap-8">
-                <div className="col-span-8 space-y-6">
-                    <Skeleton className="h-48 w-full rounded-xl" />
-                    <Skeleton className="h-32 w-full rounded-xl" />
-                    <Skeleton className="h-32 w-full rounded-xl" />
-                </div>
-                <div className="col-span-4 space-y-6">
-                    <Skeleton className="h-48 w-full rounded-xl" />
-                    <Skeleton className="h-64 w-full rounded-xl" />
+        <div className="h-screen w-full bg-[#171717] p-8 flex gap-8">
+            <div className="w-64 h-full bg-white/5 rounded-xl hidden lg:block" />
+            <div className="flex-1 space-y-6">
+                <div className="h-12 w-3/4 bg-white/5 rounded-xl" />
+                <div className="h-64 bg-white/5 rounded-xl" />
+                <div className="grid grid-cols-3 gap-6">
+                    <div className="h-48 bg-white/5 rounded-xl" />
+                    <div className="h-48 bg-white/5 rounded-xl" />
+                    <div className="h-48 bg-white/5 rounded-xl" />
                 </div>
             </div>
         </div>

@@ -5,13 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/authStore';
 import { experimentsAPI, teamsAPI } from '@/lib/api';
 import { Experiment, Team, User } from '@/types';
-import { Sidebar } from '@/components/dashboard/SideBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
   ArrowLeft, Mail, MapPin, Globe, Building, Calendar, FlaskConical, Users, 
@@ -80,19 +78,19 @@ export default function ProfilePage() {
   if (!user) return <div className="h-screen bg-[#171717] flex items-center justify-center text-white">User not found</div>;
 
   return (
-    <div className="flex h-screen bg-[#171717]/90 text-slate-200 font-sans selection:bg-teal-500/30">
-      {/* 2. Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#171717]/90">
+    <div className="flex h-screen bg-[#171717]/90 text-slate-200 font-sans selection:bg-teal-500/30 overflow-hidden">
+      {/* 2. Main Content Wrapper */}
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#171717]/90">
         
-        {/* Header */}
-        <header className="h-16 pt-3 pb-2 border-b border-white/5 flex items-center justify-between px-8 bg-[#171717]/80 backdrop-blur-md sticky top-0 z-20">
-             <div className="flex items-center gap-4 ">
-                 <div className="p-2 bg-gradient-to-r from-muted/30 to-transparent border border-white/10 rounded-lg border border-white/10">
+        {/* Header (Fixed) */}
+        <header className="h-16 shrink-0 border-b border-white/5 flex items-center justify-between px-8 bg-[#171717]/80 backdrop-blur-md z-20">
+             <div className="flex items-center gap-4">
+                 <div className="p-2 bg-[#151921] rounded-lg border border-white/10">
                     <Users className="w-5 h-5 text-teal-500" />
                  </div>
                  <div>
                     <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
-                       <span onClick={()=>router.push("/teams")} className="cursor-pointer hover:text-slate-300">Workspace</span> 
+                       <span className="cursor-pointer hover:text-slate-300" onClick={() => router.push('/teams')}>Workspace</span> 
                        <ChevronRight className="w-3 h-3" />
                        <span className="text-teal-500">Researcher Profile</span>
                     </div>
@@ -111,21 +109,22 @@ export default function ProfilePage() {
              )}
         </header>
 
-        <ScrollArea className="flex-1">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto">
             <div className="p-8 pb-20 max-w-6xl mx-auto w-full space-y-8">
                 
                 {/* --- Profile Banner Section --- */}
                 <div className="relative mb-16">
                     {/* Banner */}
-                    <div className="h-48 w-full bg-gradient-to-r from-teal-900/20 via-[#151921] to-indigo-900/20 rounded-xl border border-white/5 overflow-hidden relative">
+                    <div className="h-48 w-full bg-gradient-to-r from-teal-900/20 to-[#0c0e1300]  rounded-xl border border-white/5 overflow-hidden relative">
                         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
                     </div>
 
                     {/* Profile Info Overlay */}
                     <div className="absolute -bottom-10 left-8 right-8 flex items-end justify-between">
                         <div className="flex items-end gap-6">
-                            <Avatar className="w-32 h-32 rounded-2xl shadow-2xl rounded-2xl">
-                                <AvatarFallback className="bg-black/30 text-white text-4xl font-bold rounded-full">
+                            <Avatar className="w-32 h-32 border-4 border-[#171717] bg-[#151921] shadow-2xl rounded-2xl">
+                                <AvatarFallback className=" bg-gradient-to-r from-teal-900/20 to-[#0c0e1300] text-white text-4xl font-bold rounded-2xl">
                                     {getInitials(user.name)}
                                 </AvatarFallback>
                             </Avatar>
@@ -140,14 +139,14 @@ export default function ProfilePage() {
                                         <MapPin className="w-3.5 h-3.5" /> Ludhiana, PB
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Building className="w-3.5 h-3.5" /> PEC
+                                        <Building className="w-3.5 h-3.5" /> GNDU
                                     </span>
                                 </div>
                             </div>
                         </div>
                         
                         {/* Quick Stats Strip */}
-                        <div className="flex items-center gap-1 bg-[#151921]/80 backdrop-blur-md border border-white/5 p-1 rounded-lg mb-2">
+                        <div className="flex items-center gap-1 bg-card backdrop-blur-md border border-white/5 p-1 rounded-lg mb-2">
                             <StatBadge label="Experiments" value={stats.totalExperiments} />
                             <div className="w-px h-8 bg-white/10 mx-1" />
                             <StatBadge label="Completed" value={stats.completedExperiments} />
@@ -161,7 +160,7 @@ export default function ProfilePage() {
                     
                     {/* LEFT COL: About & Achievements */}
                     <div className="space-y-6">
-                        <Card className="bg-[#151921] border-white/5 shadow-none">
+                        <Card className="bg-card border-white/5 shadow-none">
                             <CardHeader className="pb-3 border-b border-white/5">
                                 <CardTitle className="text-sm font-semibold text-slate-200 uppercase tracking-wider">About</CardTitle>
                             </CardHeader>
@@ -178,7 +177,7 @@ export default function ProfilePage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-[#151921] border-white/5 shadow-none">
+                        <Card className="bg-card border-white/5 shadow-none">
                             <CardHeader className="pb-3 border-b border-white/5">
                                 <CardTitle className="text-sm font-semibold text-slate-200 uppercase tracking-wider">Achievements</CardTitle>
                             </CardHeader>
@@ -201,7 +200,7 @@ export default function ProfilePage() {
                             </TabsList>
 
                             <TabsContent value="activity" className="space-y-4">
-                                <Card className="bg-[#151921] border-white/5 shadow-none">
+                                <Card className="bg-card border-white/5 shadow-none">
                                     <CardContent className="p-0">
                                         <ActivityItem 
                                             icon={FlaskConical} title="Created new experiment" 
@@ -246,7 +245,7 @@ export default function ProfilePage() {
 
                 </div>
             </div>
-        </ScrollArea>
+        </div>
       </main>
     </div>
   );
@@ -315,7 +314,7 @@ function ActivityItem({ icon: Icon, title, desc, time, color }: any) {
 function ExperimentCard({ experiment, router }: { experiment: Experiment, router: any }) {
     return (
         <Card 
-            className="group cursor-pointer bg-[#151921] border-white/5 hover:border-teal-500/30 hover:shadow-lg hover:shadow-teal-500/5 transition-all"
+            className="group cursor-pointer bg-card border-white/5 hover:border-teal-500/30 hover:shadow-lg hover:shadow-teal-500/5 transition-all"
             onClick={() => router.push(`/experiments/${experiment.id}`)}
         >
             <CardContent className="p-4 flex items-center justify-between">
@@ -339,7 +338,7 @@ function ExperimentCard({ experiment, router }: { experiment: Experiment, router
 function TeamCard({ team, router }: { team: Team, router: any }) {
     return (
         <Card 
-            className="cursor-pointer bg-[#151921] border-white/5 hover:bg-[#1A1D24] transition-all"
+            className="cursor-pointer bg-card border-white/5 hover:bg-card/10 hover:border-teal-500 hover:border-teal-500/30 transition-all"
             onClick={() => router.push(`/teams/${team.id}`)}
         >
             <CardContent className="p-4">

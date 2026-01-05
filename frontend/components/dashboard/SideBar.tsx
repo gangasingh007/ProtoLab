@@ -17,7 +17,8 @@ import {
   PlusCircle,
   ChevronLeft,
   ChevronRight,
-  User
+  User,
+  Code
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';

@@ -98,7 +98,7 @@ export default function ExperimentsPage() {
   if (isLoading && teams.length === 0) return <LoadingSkeleton />;
 
   return (
-    <div className="flex h-screen bg-[#171717]/90 text-slate-200 font-sans selection:bg-teal-500/30">
+    <div className="flex bg-[#171717]/90 text-slate-200 font-sans selection:bg-teal-500/30">
       {/* 2. Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#171717]/90">
         
@@ -325,7 +325,7 @@ function ExperimentGridCard({ experiment, onClick }: { experiment: Experiment; o
             
             <div className="flex items-center gap-3 text-xs text-slate-600">
                 {experiment.tags?.[0] && (
-                    <span className="bg-[#0B0E14] px-2 py-0.5 rounded border border-white/5">
+                    <span className="text-teal-400 px-2 py-0.5 rounded border border-white/5">
                         {experiment.tags[0].name}
                     </span>
                 )}

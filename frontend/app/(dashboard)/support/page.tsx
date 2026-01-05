@@ -1,6 +1,6 @@
 import React from 'react'
 
-function SettingsPage() {
+function SupportPage() {
   return (
     <div className='bg-gradient-to-tr from-white via-gray-100 to-gray-200 min-h-screen flex items-center justify-center text-2xl font-bold text-gray-700'>
         Coming Soon
@@ -8,4 +8,4 @@ function SettingsPage() {
   )
 }
 
-export default SettingsPage
+export default SupportPage

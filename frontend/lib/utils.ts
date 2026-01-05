@@ -66,9 +66,6 @@ export function getStatusColor(status: string): string {
   return colors[normalizedStatus] || 'bg-slate-100 text-slate-600 border-slate-200';
 }
 
-/**
- * Returns color classes for User Roles
- */
 export function getRoleColor(role: string): string {
   const normalizedRole = role?.toUpperCase() || '';
 

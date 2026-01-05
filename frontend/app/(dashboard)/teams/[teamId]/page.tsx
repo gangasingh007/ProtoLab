@@ -269,7 +269,7 @@ function ExperimentCard({ experiment, router }: { experiment: Experiment, router
 
 function MemberCard({ member }: { member: any }) {
     return (
-        <div className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-background/50 hover transition-colors group">
+        <div className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-card hover:border-teal-500/30 transition-colors group">
              <Avatar className="h-10 w-10 border border-white/10">
                 <AvatarImage src={member.user.avatarUrl} />
                 <AvatarFallback className="bg-teal-500/60 text-white font-bold text-xs">
