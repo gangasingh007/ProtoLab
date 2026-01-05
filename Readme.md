@@ -43,7 +43,7 @@ ProtoLab is not just a digital notebook; it is a **semantic web of research acti
 
 ProtoLab utilizes a Monorepo structure designed for real-time performance and data integrity.
 
-```mermaid
+```code
 graph TD
     User[Researcher] --> Client[Next.js Frontend]
     Client -->|Real-time Edits (Yjs)| Socket[Socket.io Server]
