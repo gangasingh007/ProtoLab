@@ -1,168 +1,163 @@
-ResearchWeb – Cross-Campus Collaborative Research Platform 
 
-## Overview
+# 🧪 ProtoLab
 
-ResearchWeb is a full-stack platform where research teams maintain **live, reproducible, collaborative research records** across labs, departments, and universities.  It combines a lab notebook, code/data versioning, literature management, team collaboration, AI insights, and a visual knowledge graph into a single system. 
+### The Operating System for Modern Research
 
-## Problem & Solution
+**Cross-Campus Collaborative Research & Knowledge Persistence Platform**
 
-### The Problem: Knowledge Fragmentation
+---
 
-- Senior students graduate with experiment logs, failed attempts, setup details, and vendor info on local machines, causing knowledge loss. 
-- New students spend 3–6 months rediscovering what was already tried, often repeating 20+ failed experiments. 
-- Supervisors manage 10+ students across labs via email, WhatsApp, and scattered GitHub repos, with no unified view of lab progress. 
-- Literature reviews are duplicated as multiple students separately read the same 50+ papers. 
-- Experiments cannot be reliably reproduced because exact environments, datasets, and commands are not documented. 
+## 📑 Executive Summary
 
-### The Solution: ResearchWeb
+**ProtoLab** is a full-stack research engine designed to solve the "tribal knowledge" crisis in academia. It replaces scattered emails, local notebooks, and disconnected GitHub repositories with a single, **live operating system**.
 
-> A platform where research teams maintain live, reproducible, collaborative research records with AI-powered insights and persistent institutional memory across cohorts. 
+By combining **Real-Time Collaboration (CRDTs)**, **Knowledge Graphs**, and **AI Agents**, ProtoLab ensures that when a student graduates, their knowledge doesn't leave with them. It transforms static experiment logs into a living, reproducible institutional memory.
 
-Key ideas:  
-- Central lab workspace for all experiments, papers, and discussions. 
-- Real-time collaborative editing of lab notebooks with CRDT-based conflict resolution. 
-- Strong links between experiments, code commits, dataset versions, and reproducible Docker environments. 
-- AI for paper summarization, lab insights, and experiment recommendations. 
-- Knowledge graph to visualize relationships between experiments, methods, metrics, results, and papers. 
+---
 
-## Core Features
+## 🛑 The Problem: The "Bus Factor" in Academia
 
-### 1. Live Lab Notebook
+Research environments currently suffer from a critical fragmentation of knowledge:
 
-- Structured experiment logging: hypothesis, method, observations, results, failures, and next steps. 
-- Rich content: text, code blocks, plots, images, tables, and links. 
-- Full version history with who-changed-what and when. 
-- Reproducibility checklist: environment, dataset version, code commit, and exact commands. 
+| Pain Point | The Reality Today | The Cost |
+| --- | --- | --- |
+| **Knowledge Silos** | Senior students leave with logs/configs on local machines. | **3-6 months** lost per new student re-discovering failed approaches. |
+| **Reproducibility Crisis** | "It works on my machine." Dependencies aren't documented. | **20+ experiments** repeated unnecessarily due to lack of environment context. |
+| **Disconnected Data** | Code is on GitHub, data on Drive, notes in physical notebooks. | **Zero unified view** for Faculty supervisors managing 10+ students. |
+| **Duplicate Effort** | 5 students in the same lab read the same 50 papers. | **Wasted cycles** on redundant literature reviews. |
 
-### 2. Integrated Code & Data Versioning
+---
 
-- Each experiment is linked to a specific Git commit and dataset version. 
-- Large datasets handled via Git-LFS / S3-like storage (not bloating Git). 
-- One-click “Reproduce” spins up a Docker environment, installs dependencies, fetches the dataset, and checks out the exact commit. 
+## 💡 The Solution: ProtoLab
 
-### 3. AI-Powered Literature Management
+ProtoLab is not just a digital notebook; it is a **semantic web of research activity**.
 
-- Import papers via PDF or arXiv link. 
-- AI generates concise summaries, key findings, methodology, and limitations. 
-- Semantic organization: e.g., “papers using attention mechanisms” or “papers on medical image segmentation.” 
-- Papers are linked to experiments that implement their methods. 
+1. **Unified Workspace:** Experiments, papers, code, and datasets live in one context.
+2. **Institutional Memory:** A persistent Knowledge Graph linking *Method A*  *Experiment B*  *Result C*.
+3. **One-Click Reproducibility:** Dockerized environments linked to specific Git commits and Data versions.
+4. **AI Co-Pilot:** An LLM that understands the *entire* lab's history to suggest next steps.
 
-### 4. Real-Time Collaboration
+---
 
-- Multiple users can edit the same experiment in real-time with presence indicators and live cursors. 
-- Threaded comments with @mentions on specific experiment sections. 
-- Status tracking: In Progress, Blocked, Complete. 
-- Shared lab checklists for tasks like equipment booking or statistical tests. 
+## 🏗 System Architecture
 
-### 5. Knowledge Graph (Flowchart View)
+ProtoLab utilizes a Monorepo structure designed for real-time performance and data integrity.
 
-- Nodes: Experiments, Papers, Methods, Metrics, Users. 
-- Edges: “Experiment uses Method”, “Paper informs Experiment”, “Experiment measures Metric”, and “User authored Experiment”. 
-- Interactive flowchart-style layout to explore how methods, datasets, and results connect across the lab. 
+```mermaid
+graph TD
+    User[Researcher] --> Client[Next.js Frontend]
+    Client -->|Real-time Edits (Yjs)| Socket[Socket.io Server]
+    Client -->|REST API| API[Express Backend]
+    
+    subgraph Data Layer
+        Socket --> Redis[Redis (Presence/State)]
+        API --> DB[(PostgreSQL + Prisma)]
+        API --> S3[Object Storage (Datasets/PDFs)]
+    end
+    
+    subgraph Intelligence Layer
+        API --> Queue[Bull Queue]
+        Queue --> AI[Groq/Gemini LLM]
+        Queue --> Vector[Vector DB (Embeddings)]
+        Queue --> Graph[Knowledge Graph Builder]
+    end
+    
+    subgraph Reproducibility
+        API --> Docker[Docker Engine]
+        Docker --> Container[Exp Environment]
+    end
 
-### 6. Lab Ontology & Standardization
+```
 
-- Shared vocabularies for equipment, methods (e.g., ResNet-50 fine-tuning), and metrics (Accuracy, F1-Score, Inference time). 
-- Protocol templates for common workflows and onboarding new students. 
-- Standard metadata fields to enable cross-experiment comparisons. 
+---
 
-### 7. Cross-Institution Collaboration
+## 🚀 Key Features & Technical Implementation
 
-- Invite external collaborators with view/edit permissions per team or experiment. 
-- Institutional memory export when students graduate while keeping their work searchable. 
-- Shared, cross-college literature reviews and joint annotations on papers. 
+### 1. Live Collaborative Notebook (CRDTs)
 
-### 8. AI-Generated Insights
+* **Feature:** Google Docs-style editing for experiment protocols.
+* **Tech:** Uses **Yjs** (CRDT library) over **Socket.io**.
+* **Why it matters:** Allows conflict-free editing even with high latency. Supports rich text, code blocks (Monaco), and inline images.
 
-- Lab-level insights: hyperparameter search analysis, bottleneck detection, and publication-ready experiment groupings. 
-- Recommendations: suggest methods from relevant papers that have not yet been tried in current experiments. 
-- Experiment-level suggestions for next steps based on current results and literature. 
+### 2. The Knowledge Graph
 
-## Tech Stack
+* **Feature:** An interactive visual map connecting *Papers*, *Experiments*, *Methods*, and *Authors*.
+* **Tech:** **D3.js** for frontend visualization, relational queries (or Neo4j) on the backend.
+* **Insight:** "Show me all failed experiments that used ResNet-50 in Q3."
+
+### 3. AI-Powered Literature Matrix
+
+* **Feature:** Upload a PDF (or arXiv link)  AI extracts Methodology, Findings, and Limitations.
+* **Tech:** **LangChain** + **Groq** for high-speed inference.
+* **Deep Link:** Papers are semantically linked to the specific experiments that implement their methods.
+
+### 4. 30-Second Reproducibility
+
+* **Feature:** The "Reproduce" button.
+* **Tech:** Dynamically generates a `Dockerfile` based on the experiment's `requirements.txt` and checkouts the specific Git commit hash associated with the log.
+* **Impact:** Solves the "it works on my machine" crisis instantly.
+
+### 5. AI Research Analyst
+
+* **Feature:** Lab-level insights and recommendations.
+* **Tech:** RAG (Retrieval Augmented Generation) pipeline. The AI scans previous experiment results to suggest:
+* *"Your accuracy has plateaued. Paper X suggests lowering the learning rate."*
+* *"You are repeating an experiment done by Alice in 2023. See results here."*
+
+
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- React + Next.js (App Router) for SPA-like UX and real-time dashboards. 
-- TypeScript for end-to-end type safety. 
-- Tailwind CSS for responsive UI. 
-- Socket.io-client for real-time collaboration and presence. 
-- D3.js + Dagre for flowchart-style knowledge graph visualization. 
-- Monaco Editor for inline code viewing/editing in experiment pages. 
-- Zustand for global state management (auth, teams, experiments, papers, presence). 
+* **Framework:** Next.js 14 (App Router)
+* **Styling:** Tailwind CSS + Shadcn/UI + Framer Motion (Animations)
+* **State:** Zustand (Global store)
+* **Real-time:** Socket.io-client + Yjs
+* **Viz:** D3.js (Graphs) + Recharts (Data analytics)
 
 ### Backend
 
-- Node.js + Express for a lightweight REST API. 
-- Prisma ORM (v6) with PostgreSQL for relational data (users, teams, experiments, papers, comments). 
-- Socket.io server for real-time updates (experiment editing, comments, presence). 
-- Yjs CRDT for conflict-free collaborative document editing. 
-- Redis for WebSocket presence and debounced persistence of real-time edits. 
-- Bull Queue (planned) for background jobs like PDF processing and AI analysis. 
+* **Runtime:** Node.js + Express
+* **Database:** PostgreSQL (via Prisma ORM)
+* **Caching:** Redis (Collab sessions)
+* **Queues:** BullMQ (Async jobs for PDF parsing/AI)
 
-### Databases & Storage
+### AI & DevOps
 
-- PostgreSQL: main relational datastore for users, teams, experiments, papers, and tags. 
-- Redis: real-time session storage and collaboration metadata. 
-- S3/Minio/Cloudinary: storage for PDFs, datasets, and code archives. 
-- Optional Neo4j or graph queries on Postgres for advanced knowledge graph features. 
+* **LLM:** Groq API (Llama-3-70b) or Google Gemini Flash
+* **Embeddings:** OpenAI text-embedding-3-small
+* **Containerization:** Docker
 
-### AI & NLP
+---
 
-- Groq API or Google Gemini for fast LLM calls (summarization and insights). 
-- Embeddings (OpenAI/Groq) for semantic search across papers and experiments. 
-- LangChain-style orchestration for multi-step LLM pipelines (summaries + insights). 
-
-### Reproducibility
-
-- Docker containers to reproduce experiment environments end-to-end. 
-- Git for code versioning and linking commits to experiments. 
-- DVC or similar for dataset versioning separate from Git. 
-- environment.yml / requirements.txt for dependency management. 
-
-### Deployment
-
-- Frontend on Vercel for quick deployments and previews. 
-- Backend on Railway/Render for managed Node.js hosting. 
-- PostgreSQL via Supabase or Railway. 
-- S3-compatible storage via Cloudinary/Minio. 
-
-## Project Structure
-
-High-level structure (monorepo style):
-
-- `backend/` – Express API, Prisma, Socket.io, AI services.  
-- `frontend/` – Next.js app with dashboards, notebooks, and graphs.  
-- `prisma/` – Schema, migrations, and seed script. 
-- `docs/` (optional) – Architecture notes, pitch deck, and demo script. 
-
-## Getting Started
+## ⚡ Getting Started
 
 ### Prerequisites
 
-- Node.js ≥ 18  
-- PostgreSQL database instance  
-- Redis instance  
-- (Optional) Groq or Google Gemini API key for AI features 
+* Node.js  18
+* PostgreSQL & Redis (Local or Cloud)
+* Git
 
 ### 1. Backend Setup
 
 ```bash
 cd backend
 npm install
+
+# Setup Environment
+cp .env.example .env
+# Fill in DATABASE_URL, REDIS_URL, AI_KEYS
+
+# Initialize DB
 npx prisma migrate dev --name init
-npm run seed   # optional: load mock lab data
+npm run seed  # 👈 Critical: Seeds the 'Alice Johnson' demo data
+
+# Start Server
 npm run dev
-```
 
-Environment variables (`backend/.env`):
-
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/researchweb
-JWT_SECRET=your-jwt-secret
-REDIS_URL=redis://localhost:6379
-
-GROQ_API_KEY=your-groq-key        # or
-GOOGLE_GEMINI_API_KEY=your-gemini-key
 ```
 
 ### 2. Frontend Setup
@@ -170,48 +165,24 @@ GOOGLE_GEMINI_API_KEY=your-gemini-key
 ```bash
 cd frontend
 npm install
+
+# Setup Environment
+echo "NEXT_PUBLIC_API_URL=http://localhost:5000/api" > .env.local
+echo "NEXT_PUBLIC_SOCKET_URL=http://localhost:5000" >> .env.local
+
+# Start Client
 npm run dev
+
 ```
 
-Environment variables (`frontend/.env.local`):
+Visit `http://localhost:3000`.
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
-```
+---
 
-Then open `http://localhost:3000` and log in with seeded users (e.g., `alice@research.edu / password123`).  
 
-## Key User Flows
 
-### Student Journey
+## ✨ Why This Wins
 
-- Join a lab team and see previous experiments as a “Research Setup Kit”. 
-- Follow documented equipment setup and protocols instead of reinventing them. 
-- Read AI-summarized key papers and link them directly into experiments. 
-- Log experiments daily with linked code, datasets, and results. 
-- Use the knowledge graph to discover similar past experiments and avoid repeated failures. 
-- Generate AI suggestions for next experiments and potential paper directions. 
-
-### Faculty Journey
-
-- Open a dashboard showing all students and current experiment statuses (In Progress / Blocked / Complete). 
-- Drill down into any student’s experiments and code/results in one place. 
-- Use lab insights to see which methods are strong/weak, and where the lab should focus. 
-- End-of-year: export experiments, papers, and AI insights into a concise research report. 
-
-## Live Demo Script (2–3 Minutes)
-
-- Show the “fragmented research” problem with chat/email/code screenshots. 
-- Navigate to an existing experiment showing hypothesis, method, code, dataset, and results. 
-- Demonstrate real-time editing between two browser windows with comments and status updates. 
-- Open the knowledge graph flowchart and click through the connections between experiments and papers. 
-- Press “Reproduce” on a prior experiment and show the environment spin up. 
-- Open “Lab Insights” to highlight AI-generated recommendations and potential paper groupings. 
-
-## Why This Project Stands Out
-
-- Tackles a **real, painful research problem** that judges and academics personally recognize. 
-- Demonstrates **deep engineering**: CRDTs, real-time systems, Docker reproducibility, graph modeling, and LLM integration. 
-- Visually impressive demo: live collaboration, AI insights, and a rich knowledge graph/flowchart. 
-- Immediately deployable in real universities with clear paths for extension (equipment booking, publication pipeline, etc.). 
+* **Engineering Depth:** It's not just a ChatGPT wrapper. It uses CRDTs for sync, Graph theory for data relationships, and Docker for infra.
+* **Real Problem:** It solves a specific, painful problem in a massive market ($Trillions in R&D spending).
+* **Polished UI:** The "Void" aesthetic looks professional and futuristic, differentiating it from standard student projects.
