@@ -32,7 +32,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Progress } from '@/components/ui/progress'; // Assuming you have shadcn progress component
+import router, { Router } from 'next/router';
 
 const mainNav = [
   { name: 'Teams', href: '/teams', icon: Users },
@@ -190,11 +190,13 @@ export function Sidebar() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+             <div onClick={()=>router.push("/profile")}>
+               <DropdownMenuItem>
                 <Users className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+             </div>
+              <DropdownMenuItem onClick={()=>router.push("/settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>

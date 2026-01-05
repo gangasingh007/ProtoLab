@@ -116,7 +116,7 @@ export default function ProfilePage() {
                 {/* --- Profile Banner Section --- */}
                 <div className="relative mb-16">
                     {/* Banner */}
-                    <div className="h-48 w-full bg-gradient-to-r from-teal-900/20 to-[#0c0e1300]  rounded-xl border border-white/5 overflow-hidden relative">
+                    <div className="h-48 w-full bg-gradient-to-r from-[#0c0e1300] to-teal-900/20  rounded-xl border border-white/5 overflow-hidden relative">
                         <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-10" />
                     </div>
 
@@ -136,7 +136,7 @@ export default function ProfilePage() {
                                         {user.role.charAt(0) + user.role.slice(1).toLowerCase().replace('_', ' ')}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <MapPin className="w-3.5 h-3.5" /> Ludhiana, PB
+                                        <MapPin className="w-3.5 h-3.5" /> Amritsar, PB
                                     </span>
                                     <span className="flex items-center gap-1">
                                         <Building className="w-3.5 h-3.5" /> GNDU
@@ -160,12 +160,12 @@ export default function ProfilePage() {
                     
                     {/* LEFT COL: About & Achievements */}
                     <div className="space-y-6">
-                        <Card className="bg-card border-white/5 shadow-none">
+                        <Card className="bg-black/10 border-white/5 shadow-none">
                             <CardHeader className="pb-3 border-b border-white/5">
                                 <CardTitle className="text-sm font-semibold text-slate-200 uppercase tracking-wider">About</CardTitle>
                             </CardHeader>
                             <CardContent className="p-5 space-y-4">
-                                <p className="text-sm text-slate-400 leading-relaxed">
+                                <p className="text-sm text-white leading-relaxed">
                                     Full-stack developer passionate about AI and machine learning. 
                                     Currently working on research projects involving deep learning and computer vision.
                                 </p>
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-card border-white/5 shadow-none">
+                        <Card className="bg-black/10 border-white/5 shadow-none">
                             <CardHeader className="pb-3 border-b border-white/5">
                                 <CardTitle className="text-sm font-semibold text-slate-200 uppercase tracking-wider">Achievements</CardTitle>
                             </CardHeader>
@@ -200,7 +200,7 @@ export default function ProfilePage() {
                             </TabsList>
 
                             <TabsContent value="activity" className="space-y-4">
-                                <Card className="bg-card border-white/5 shadow-none">
+                                <Card className="bg-black/10 border-white/5 shadow-none">
                                     <CardContent className="p-0">
                                         <ActivityItem 
                                             icon={FlaskConical} title="Created new experiment" 

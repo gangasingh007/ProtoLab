@@ -196,7 +196,7 @@ export default function ExperimentsPage() {
                 </div>
 
                 {/* View Toggle */}
-                <div className="flex bg-[#151921] rounded-md p-1 border border-white/10 ml-auto">
+                <div className="flex bg-card rounded-md p-1 border border-white/10 ml-auto">
                     <Button
                         variant="ghost"
                         size="sm"
@@ -339,7 +339,7 @@ function ExperimentGridCard({ experiment, onClick }: { experiment: Experiment; o
 function ExperimentListItem({ experiment, onClick }: { experiment: Experiment; onClick: () => void }) {
   return (
     <Card
-      className="cursor-pointer bg-[#151921] border-white/5 hover:bg-[#1A1D24] hover:border-teal-500/20 transition-all group"
+      className="cursor-pointer bg-card border-white/15 hover:bg-[#1A1D24] hover:border-teal-500/20 transition-all group"
       onClick={onClick}
     >
       <div className="flex items-center p-4 gap-6">

@@ -14,9 +14,7 @@ import {
   Send, 
   Loader2, 
   MessageSquare, 
-  Wifi, 
   MessageCircle,
-  MoreVertical,
   Reply
 } from 'lucide-react';
 import { formatDateTime, getInitials, cn } from '@/lib/utils';
@@ -47,7 +45,11 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
       socket.emit('join-experiment', experimentId);
 
       const handleCommentAdded = (comment: Comment) => {
-        setComments((prev) => [...prev, comment]);
+        setComments((prev) => {
+            // FIX: Check for duplicates to prevent double rendering if API + Socket both fire
+            if (prev.some((c) => c.id === comment.id)) return prev;
+            return [...prev, comment];
+        });
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       };
 
@@ -77,10 +79,21 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
 
     setIsSending(true);
     try {
-      await commentsAPI.createComment({
+      // 1. Send to API
+      const savedComment = await commentsAPI.createComment({
         content: newComment,
         experimentId,
       });
+      const commentWithAuthor = {
+          ...savedComment,
+          author: savedComment.author || {
+              id: user?.id,
+              name: user?.name || 'Me',
+          }
+      };
+      // @ts-ignore
+      setComments((prev) => [...prev, commentWithAuthor]);
+      
       setNewComment('');
       setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (error: any) {
@@ -107,10 +120,10 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-muted/40 to-transparent mt-8 rounded-xl border border-white/5 rounded-xl overflow-hidden shadow-sm">
+    <div className="flex flex-col h-full bg-black/15 border border-white/5 rounded-xl overflow-hidden shadow-sm">
       
       {/* 1. Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-card backdrop-blur">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 ]">
         <div className="flex items-center gap-3">
           <div className="p-1.5 bg-teal-500/10 rounded-md">
              <MessageSquare className="w-4 h-4 text-teal-500" />
@@ -193,10 +206,10 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
       </ScrollArea>
 
       {/* 3. Input Area */}
-      <div className="p-4 bg-card backdrop-blur border-t border-white/5">
+      <div className="p-4 border-t border-white/5">
         <form 
           onSubmit={handleSubmit} 
-          className="relative group bg-card border border-white/10 rounded-xl focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all duration-200"
+          className="relative group bg-[#0B0E14] border border-white/10 rounded-xl focus-within:border-teal-500/50 focus-within:ring-1 focus-within:ring-teal-500/20 transition-all duration-200"
         >
           <Textarea
             placeholder="Type your comment here..."
@@ -204,7 +217,7 @@ export function CommentSection({ experimentId }: CommentSectionProps) {
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
-            className="min-h-[48px] max-h-[120px] w-full resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 px-4 py-3 text-sm text-slate-200 placeholder:text-slate-600"
+            className="min-h-[48px] max-h-[120px] w-full resize-none border-0  shadow-none focus-visible:ring-0 px-4 py-3 text-sm text-white placeholder:text-slate"
             style={{ height: 'auto' }}
           />
           

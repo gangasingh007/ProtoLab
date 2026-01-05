@@ -339,7 +339,7 @@ function TeamCard({ team, viewMode, onClick, index }: { team: any; viewMode: 'gr
       
       <CardHeader className="pb-4 relative z-10">
         <div className="flex justify-between items-start mb-4">
-          <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xl text-white shadow-lg ring-4 ring-background group-hover:scale-110 transition-transform duration-300 bg-primary/80")}>
+          <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-xl text-black shadow-lg ring-4 ring-background group-hover:scale-110 transition-transform duration-300 bg-primary/80")}>
             {initials}
           </div>
           <Badge variant="secondary" className="bg-teald-500/10 text-teald-700 dark:text-teald-400 border-teald-500/20 font-medium px-3 shadow-sm">
