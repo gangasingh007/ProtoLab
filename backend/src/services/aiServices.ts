@@ -1,14 +1,11 @@
-import Groq from 'groq-sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize AI clients
-const groq = process.env.GROQ_API_KEY 
-  ? new Groq({ apiKey: process.env.GROQ_API_KEY })
-  : null;
+// Initialize Gemini
+if (!process.env.GOOGLE_GEMINI_API_KEY) {
+  throw new Error('GOOGLE_GEMINI_API_KEY is not set');
+}
 
-const genAI = process.env.GOOGLE_GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY)
-  : null;
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
 
 interface SummarizePaperParams {
   title: string;
@@ -21,7 +18,7 @@ interface GenerateInsightsParams {
 }
 
 export class AIService {
-  // Summarize research paper
+  // ----------- Paper Summarization -----------
   static async summarizePaper(params: SummarizePaperParams): Promise<{
     summary: string;
     findings: string;
@@ -29,48 +26,35 @@ export class AIService {
     limitations: string;
   }> {
     const prompt = `
-Analyze this research paper and provide a structured summary:
+Analyze the following research paper and return a STRICT JSON response.
 
 Title: ${params.title}
 
 Content:
-${params.content.slice(0, 15000)} // Limit content length
+${params.content.slice(0, 15000)}
 
-Please provide:
-1. A concise summary (3-4 sentences)
-2. Key findings (bullet points)
-3. Methodology used
-4. Limitations mentioned
+Return JSON with keys:
+- summary (string, 3–4 sentences)
+- findings (string or bullet list)
+- methodology (string)
+- limitations (string)
 
-Format your response as JSON with keys: summary, findings, methodology, limitations
+Do NOT add explanations or markdown.
 `;
 
     try {
-      if (groq) {
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
-          model: 'llama-3.1-8b-instant',
-          temperature: 0.3,
-          max_tokens: 2000,
-        });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
 
-        const response = completion.choices[0]?.message?.content || '{}';
-        return this.parseAIResponse(response);
-      } else if (genAI) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        const result = await model.generateContent(prompt);
-        const response = result.response.text();
-        return this.parseAIResponse(response);
-      }
-
-      throw new Error('No AI service configured');
+      return this.safeJSONParse(response);
     } catch (error) {
-      console.error('AI summarization error:', error);
+      console.error('Gemini summarization error:', error);
       throw error;
     }
   }
 
-  // Generate insights from experiments
+  // ----------- Experiment Insights -----------
   static async generateInsights(params: GenerateInsightsParams): Promise<{
     insights: string[];
     recommendations: string[];
@@ -89,219 +73,108 @@ Results: ${e.results || 'N/A'}
       .join('\n---\n');
 
     const prompt = `
-Analyze these research experiments and provide insights:
+Analyze the following experiments and return STRICT JSON.
 
 ${experimentsText}
 
-Based on these experiments, provide:
-1. Key insights (3-5 observations about the research)
-2. Recommendations (3-5 suggestions for next steps)
-3. Patterns (any trends or patterns you notice)
+Return JSON with:
+- insights (array of strings)
+- recommendations (array of strings)
+- patterns (array of strings)
 
-Format as JSON with keys: insights (array), recommendations (array), patterns (array)
+No markdown. No extra text.
 `;
 
     try {
-      if (groq) {
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
-          model: 'llama-3.1-8b-instant',
-          temperature: 0.5,
-          max_tokens: 1500,
-        });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
 
-        const response = completion.choices[0]?.message?.content || '{}';
-        return this.parseInsightsResponse(response);
-      } else if (genAI) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        const result = await model.generateContent(prompt);
-        const response = result.response.text();
-        return this.parseInsightsResponse(response);
-      }
-
-      throw new Error('No AI service configured');
+      return this.safeJSONParse(response);
     } catch (error) {
-      console.error('AI insights error:', error);
+      console.error('Gemini insights error:', error);
       throw error;
     }
   }
 
-  // Suggest next experiments
+  // ----------- Next Experiment Suggestion -----------
   static async suggestNextExperiment(params: {
     currentExperiment: any;
     relatedPapers?: any[];
   }): Promise<string> {
     const prompt = `
-Based on this experiment, suggest what should be done next:
+Based on the following experiment, suggest next steps:
 
-Experiment: ${params.currentExperiment.title}
+Title: ${params.currentExperiment.title}
 Hypothesis: ${params.currentExperiment.hypothesis}
 Method: ${params.currentExperiment.method}
-Current Results: ${params.currentExperiment.results || 'No results yet'}
+Results: ${params.currentExperiment.results || 'No results'}
 Status: ${params.currentExperiment.status}
 
 ${
-  params.relatedPapers && params.relatedPapers.length > 0
-    ? `Related Papers:\n${params.relatedPapers.map((p) => `- ${p.title}`).join('\n')}`
+  params.relatedPapers?.length
+    ? `Related Papers:\n${params.relatedPapers
+        .map((p) => `- ${p.title}`)
+        .join('\n')}`
     : ''
 }
 
-Provide a detailed suggestion for the next steps (200-300 words).
+Provide a clear, actionable suggestion (200–300 words).
 `;
 
     try {
-      if (groq) {
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
-          model: 'llama-3.1-8b-instant',
-          temperature: 0.7,
-          max_tokens: 500,
-        });
-
-        return completion.choices[0]?.message?.content || 'No suggestions available';
-      } else if (genAI) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-      }
-
-      throw new Error('No AI service configured');
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      return result.response.text();
     } catch (error) {
-      console.error('AI suggestion error:', error);
+      console.error('Gemini suggestion error:', error);
       throw error;
     }
   }
 
-  // Extract key information from experiment
+  // ----------- Extract Key Info -----------
   static async extractKeyInfo(experimentText: string): Promise<{
     methods: string[];
     metrics: string[];
     findings: string[];
   }> {
     const prompt = `
-Extract key information from this experiment:
+Extract structured information from the experiment below.
 
 ${experimentText}
 
-Provide:
-1. Methods used (list of techniques/algorithms)
-2. Metrics measured (list of evaluation metrics)
-3. Key findings (list of important results)
+Return STRICT JSON with:
+- methods (array)
+- metrics (array)
+- findings (array)
 
-Format as JSON with keys: methods (array), metrics (array), findings (array)
+No markdown.
 `;
 
     try {
-      if (groq) {
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
-          model: 'llama-3.1-8b-instant',
-          temperature: 0.2,
-          max_tokens: 800,
-        });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
 
-        const response = completion.choices[0]?.message?.content || '{}';
-        return this.parseKeyInfoResponse(response);
-      } else if (genAI) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        const result = await model.generateContent(prompt);
-        const response = result.response.text();
-        return this.parseKeyInfoResponse(response);
-      }
-
-      throw new Error('No AI service configured');
+      return this.safeJSONParse(response);
     } catch (error) {
-      console.error('AI extraction error:', error);
+      console.error('Gemini extraction error:', error);
       return { methods: [], metrics: [], findings: [] };
     }
   }
 
-  // Helper: Parse AI response
-  private static parseAIResponse(response: string): {
-    summary: string;
-    findings: string;
-    methodology: string;
-    limitations: string;
-  } {
+  // ----------- Utility: Safe JSON Parsing -----------
+  private static safeJSONParse<T>(response: string): T {
     try {
-      // Try to extract JSON from markdown code blocks
-      const jsonMatch = response.match(/``````/) || 
-                       response.match(/``````/);
-      
-      if (jsonMatch) {
-        //@ts-ignore
-        response = jsonMatch ;
-      }
+      // Remove markdown/code blocks if present
+      const cleaned = response
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
 
-      const parsed = JSON.parse(response);
-      return {
-        summary: parsed.summary || '',
-        findings: parsed.findings || '',
-        methodology: parsed.methodology || '',
-        limitations: parsed.limitations || '',
-      };
-    } catch (error) {
-      // Fallback: return the raw response
-      return {
-        summary: response.slice(0, 500),
-        findings: 'Unable to parse findings',
-        methodology: 'Unable to parse methodology',
-        limitations: 'Unable to parse limitations',
-      };
-    }
-  }
-
-  private static parseInsightsResponse(response: string): {
-    insights: string[];
-    recommendations: string[];
-    patterns: string[];
-  } {
-    try {
-      const jsonMatch = response.match(/``````/) || 
-                       response.match(/``````/);
-      
-      if (jsonMatch) {
-        //@ts-ignore
-        response = jsonMatch ;
-      }
-
-      const parsed = JSON.parse(response);
-      return {
-        insights: parsed.insights || [],
-        recommendations: parsed.recommendations || [],
-        patterns: parsed.patterns || [],
-      };
-    } catch (error) {
-      return {
-        insights: ['Unable to generate insights'],
-        recommendations: ['Unable to generate recommendations'],
-        patterns: ['Unable to detect patterns'],
-      };
-    }
-  }
-
-  private static parseKeyInfoResponse(response: string): {
-    methods: string[];
-    metrics: string[];
-    findings: string[];
-  } {
-    try {
-      const jsonMatch = response.match(/``````/) || 
-                       response.match(/``````/);
-      
-      if (jsonMatch) {
-        //@ts-ignore
-        response  = jsonMatch ;
-      }
-
-      const parsed = JSON.parse(response);
-      return {
-        methods: parsed.methods || [],
-        metrics: parsed.metrics || [],
-        findings: parsed.findings || [],
-      };
-    } catch (error) {
-      return { methods: [], metrics: [], findings: [] };
+      return JSON.parse(cleaned);
+    } catch {
+      throw new Error('Failed to parse Gemini JSON response');
     }
   }
 }
